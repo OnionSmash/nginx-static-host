@@ -8,176 +8,92 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <style>
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    :root{
-      --purple:#7c3aed;--purple-light:#a78bfa;--blue:#2563eb;--cyan:#06b6d4;
-      --green:#10b981;--bg:#0a0a0f;--bg-2:#0f0f1a;--bg-card:#12121e;
-      --border:rgba(255,255,255,0.08);--border-hover:rgba(124,58,237,0.4);
-      --text:#f1f0ff;--text-muted:#9896b8;--text-dim:#4e4c6a;
-      --radius:16px;--radius-sm:8px;--font:'Inter',system-ui,sans-serif;
-      --font-display:'Space Grotesk','Inter',sans-serif;--font-mono:'JetBrains Mono',monospace;
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            lume: { bg: '#0a0a0f', bg2: '#0f0f1a', card: '#12121e', hover: '#17172a' }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['Space Grotesk', 'Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
     }
-    html{scroll-behavior:smooth;}
-    body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;}
-    a{color:inherit;text-decoration:none;}
-    .container{max-width:1100px;margin:0 auto;padding:0 24px;}
-    .gradient-text{background:linear-gradient(135deg,var(--purple-light),var(--blue),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-
-    /* Nav */
-    nav{position:sticky;top:0;z-index:50;background:rgba(10,10,15,0.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
-    .nav-inner{display:flex;align-items:center;justify-content:space-between;height:68px;gap:24px;}
-    .logo{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-weight:700;font-size:1.05rem;}
-    .nav-links{display:flex;gap:4px;align-items:center;}
-    .nav-links a{padding:7px 14px;font-size:0.88rem;color:var(--text-muted);border-radius:8px;font-weight:500;transition:all 0.2s;}
-    .nav-links a:hover{color:var(--text);background:rgba(255,255,255,0.05);}
-    .badge-new{font-size:0.65rem;background:rgba(124,58,237,0.2);color:var(--purple-light);border:1px solid rgba(124,58,237,0.3);border-radius:100px;padding:2px 7px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;vertical-align:middle;margin-left:4px;}
-    .btn{display:inline-flex;align-items:center;gap:7px;padding:9px 20px;border-radius:9px;font-weight:600;font-size:0.875rem;border:none;cursor:pointer;font-family:inherit;transition:all 0.2s;}
-    .btn-primary{background:linear-gradient(135deg,var(--purple),var(--blue));color:#fff;box-shadow:0 4px 16px rgba(124,58,237,0.3);}
-    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(124,58,237,0.45);}
-    .btn-outline{border:1.5px solid var(--border-hover);color:var(--purple-light);background:transparent;}
-    .btn-outline:hover{background:rgba(124,58,237,0.08);}
-
-    /* Hero */
-    .api-hero{padding:80px 0 60px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,rgba(124,58,237,0.05) 0%,transparent 100%);}
-    .api-hero__inner{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;}
-    .api-hero__eyebrow{font-size:0.75rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--purple-light);margin-bottom:12px;}
-    .api-hero h1{font-family:var(--font-display);font-size:clamp(2rem,4vw,3rem);font-weight:800;letter-spacing:-0.02em;line-height:1.1;margin-bottom:16px;}
-    .api-hero p{color:var(--text-muted);font-size:1rem;line-height:1.7;margin-bottom:28px;}
-    .api-hero__cta{display:flex;gap:12px;flex-wrap:wrap;}
-    .api-hero__code-block{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
-    .code-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02);}
-    .code-dots{display:flex;gap:6px;}
-    .code-dots span{width:10px;height:10px;border-radius:50%;}
-    .code-dots span:nth-child(1){background:#ef4444;}
-    .code-dots span:nth-child(2){background:#f59e0b;}
-    .code-dots span:nth-child(3){background:#10b981;}
-    .code-lang{font-size:0.75rem;color:var(--text-dim);font-family:var(--font-mono);}
-    .code-copy{font-size:0.75rem;color:var(--text-muted);background:transparent;border:none;cursor:pointer;font-family:var(--font);padding:2px 8px;border-radius:4px;transition:all 0.2s;}
-    .code-copy:hover{background:rgba(255,255,255,0.08);color:var(--text);}
-    pre{padding:20px;overflow-x:auto;font-family:var(--font-mono);font-size:0.82rem;line-height:1.7;color:#e2e0ff;}
-    .kw{color:#a78bfa;}.fn{color:#60a5fa;}.str{color:#34d399;}.num{color:#f59e0b;}.cm{color:#4e4c6a;font-style:italic;}
-
-    /* Quick start */
-    .section{padding:72px 0;}
-    .section-title{font-family:var(--font-display);font-size:1.8rem;font-weight:700;letter-spacing:-0.02em;margin-bottom:8px;}
-    .section-sub{color:var(--text-muted);font-size:0.95rem;margin-bottom:40px;}
-    .eyebrow{font-size:0.72rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--purple-light);margin-bottom:8px;display:block;}
-
-    /* Endpoints grid */
-    .endpoint-tabs{display:flex;gap:4px;margin-bottom:24px;flex-wrap:wrap;}
-    .endpoint-tab{padding:8px 16px;font-size:0.875rem;font-weight:500;color:var(--text-muted);border-radius:8px;background:transparent;border:1px solid transparent;cursor:pointer;font-family:inherit;transition:all 0.2s;}
-    .endpoint-tab.active{color:var(--text);background:var(--bg-card);border-color:var(--border);}
-    .endpoint-tab:hover:not(.active){color:var(--text-muted);background:rgba(255,255,255,0.03);}
-    .endpoints-list{display:flex;flex-direction:column;gap:10px;}
-    .endpoint{display:grid;grid-template-columns:80px 1fr auto;align-items:center;gap:16px;padding:14px 18px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);transition:border-color 0.2s;}
-    .endpoint:hover{border-color:var(--border-hover);}
-    .method{font-family:var(--font-mono);font-size:0.75rem;font-weight:700;padding:3px 8px;border-radius:4px;text-align:center;}
-    .method-get{background:rgba(16,185,129,0.15);color:#10b981;}
-    .method-post{background:rgba(37,99,235,0.15);color:#60a5fa;}
-    .method-put{background:rgba(245,158,11,0.15);color:#f59e0b;}
-    .method-delete{background:rgba(239,68,68,0.15);color:#ef4444;}
-    .endpoint-path{font-family:var(--font-mono);font-size:0.88rem;color:var(--text);}
-    .endpoint-desc{font-size:0.82rem;color:var(--text-muted);}
-    .endpoint-badge{font-size:0.7rem;color:var(--purple-light);background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.2);padding:2px 8px;border-radius:100px;white-space:nowrap;}
-
-    /* SDKs */
-    .sdk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;}
-    .sdk-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:20px;display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center;transition:all 0.2s;cursor:pointer;}
-    .sdk-card:hover{border-color:var(--border-hover);transform:translateY(-2px);}
-    .sdk-icon{font-size:2rem;}
-    .sdk-card h4{font-size:0.95rem;font-weight:600;}
-    .sdk-card p{font-size:0.8rem;color:var(--text-muted);}
-    .sdk-status{font-size:0.7rem;font-weight:600;padding:2px 8px;border-radius:100px;}
-    .sdk-status-ga{background:rgba(16,185,129,0.12);color:#10b981;}
-    .sdk-status-beta{background:rgba(245,158,11,0.12);color:#f59e0b;}
-    .sdk-status-soon{background:rgba(100,100,100,0.12);color:var(--text-dim);}
-
-    /* Auth */
-    .auth-box{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:32px;margin-bottom:24px;}
-    .auth-box h3{font-family:var(--font-display);font-weight:600;margin-bottom:10px;}
-    .auth-box p{color:var(--text-muted);font-size:0.92rem;margin-bottom:16px;line-height:1.6;}
-    .key-input-wrap{display:flex;gap:10px;align-items:center;}
-    .key-input{background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text-muted);font-family:var(--font-mono);font-size:0.85rem;padding:10px 16px;flex:1;outline:none;letter-spacing:0.05em;}
-
-    /* Rate limits */
-    .limits-table{width:100%;border-collapse:collapse;}
-    .limits-table th,.limits-table td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--border);font-size:0.875rem;}
-    .limits-table th{color:var(--text-muted);font-weight:500;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.07em;}
-    .limits-table td{color:var(--text);}
-    .limits-table tbody tr:hover{background:rgba(255,255,255,0.02);}
-    .plan-badge{display:inline-block;font-size:0.72rem;font-weight:600;padding:2px 8px;border-radius:100px;letter-spacing:0.05em;}
-    .plan-free{background:rgba(100,100,100,0.2);color:var(--text-muted);}
-    .plan-pro{background:rgba(37,99,235,0.15);color:#60a5fa;}
-    .plan-enterprise{background:rgba(124,58,237,0.15);color:var(--purple-light);}
-
-    /* Footer */
-    footer{padding:32px 0;border-top:1px solid var(--border);background:var(--bg-2);}
-    .footer-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
-    .footer-inner p{font-size:0.8rem;color:var(--text-dim);}
-    .footer-links{display:flex;gap:20px;}
-    .footer-links a{font-size:0.8rem;color:var(--text-dim);transition:color 0.2s;}
-    .footer-links a:hover{color:var(--text);}
-
-    @media(max-width:768px){
-      .api-hero__inner{grid-template-columns:1fr;}
-      .endpoint{grid-template-columns:64px 1fr;}.endpoint-badge{display:none;}
-    }
-  </style>
+  </script>
+  <link rel="stylesheet" href="/styles.css" />
 </head>
-<body>
+<body class="bg-lume-bg text-[#f1f0ff] font-sans antialiased leading-relaxed" style="scroll-behavior:smooth">
 
-<nav>
-  <div class="container nav-inner">
-    <a href="https://stacklume.cloud" class="logo">
+<!-- ─── NAV ─── -->
+<nav class="sticky top-0 z-50 bg-lume-bg/85 backdrop-blur-lg border-b border-white/[0.08]">
+  <div class="max-w-[1100px] mx-auto px-6 flex items-center justify-between h-[68px] gap-6">
+    <a href="https://stacklume.cloud" class="flex items-center gap-2.5 font-display font-bold text-[1.05rem]">
       <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
         <rect width="32" height="32" rx="8" fill="url(#apiLogoGrad)"/>
         <path d="M8 20 L16 8 L24 20" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
         <path d="M11 24 h10" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
         <defs><linearGradient id="apiLogoGrad" x1="0" y1="0" x2="32" y2="32"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs>
       </svg>
-      Stack Lume <span style="color:var(--text-dim);font-weight:400;margin-left:4px;">/ API</span>
+      Stack Lume <span class="text-[#4e4c6a] font-normal ml-1">/ API</span>
     </a>
-    <div class="nav-links">
-      <a href="#quickstart">Quickstart</a>
-      <a href="#endpoints">Endpoints</a>
-      <a href="#sdks">SDKs</a>
-      <a href="#auth">Auth</a>
-      <a href="#rate-limits">Limits</a>
-      <a href="https://stacklume.cloud" class="btn btn-outline" style="margin-left:8px;">← Main Site</a>
-      <a href="https://demo.stacklume.cloud" class="btn btn-primary" style="margin-left:4px;">Live Demo</a>
+    <div class="flex gap-1 items-center">
+      <a href="#quickstart" class="px-3.5 py-[7px] text-[0.88rem] text-[#9896b8] rounded-lg font-medium hover:text-[#f1f0ff] hover:bg-white/5 transition-all duration-200">Quickstart</a>
+      <a href="#endpoints" class="px-3.5 py-[7px] text-[0.88rem] text-[#9896b8] rounded-lg font-medium hover:text-[#f1f0ff] hover:bg-white/5 transition-all duration-200">Endpoints</a>
+      <a href="#sdks" class="px-3.5 py-[7px] text-[0.88rem] text-[#9896b8] rounded-lg font-medium hover:text-[#f1f0ff] hover:bg-white/5 transition-all duration-200">SDKs</a>
+      <a href="#auth" class="px-3.5 py-[7px] text-[0.88rem] text-[#9896b8] rounded-lg font-medium hover:text-[#f1f0ff] hover:bg-white/5 transition-all duration-200">Auth</a>
+      <a href="#rate-limits" class="px-3.5 py-[7px] text-[0.88rem] text-[#9896b8] rounded-lg font-medium hover:text-[#f1f0ff] hover:bg-white/5 transition-all duration-200">Limits</a>
+      <a href="https://stacklume.cloud" class="ml-2 inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold text-violet-400 border border-violet-600/40 hover:bg-violet-600/10 hover:border-violet-400 transition-all duration-200">← Main Site</a>
+      <a href="https://demo.stacklume.cloud" class="ml-1 inline-flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-md shadow-violet-900/30 hover:shadow-violet-900/50 hover:-translate-y-0.5 transition-all duration-200">Live Demo</a>
     </div>
   </div>
 </nav>
 
-<!-- HERO -->
-<section class="api-hero">
-  <div class="container">
-    <div class="api-hero__inner">
+<!-- ─── HERO ─── -->
+<section class="py-20 pb-[60px] border-b border-white/[0.08]" style="background:linear-gradient(180deg,rgba(124,58,237,0.05) 0%,transparent 100%)">
+  <div class="max-w-[1100px] mx-auto px-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-[60px] items-center">
       <div>
-        <div class="api-hero__eyebrow">Developer Hub</div>
-        <h1>Stack Lume <span class="gradient-text">REST API</span></h1>
-        <p>Integrate the full Stack Lume product suite into your applications with a single, unified REST API. JSON-first, OpenAPI 3.1 compliant, and built for enterprise scale.</p>
-        <div class="api-hero__cta">
-          <a href="#quickstart" class="btn btn-primary">
-            <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div class="flex items-center gap-2 mb-3">
+          <i class="bi bi-lightning-charge-fill text-violet-400"></i>
+          <span class="text-[0.75rem] font-semibold tracking-[0.12em] uppercase text-violet-400">Developer Hub</span>
+        </div>
+        <h1 class="font-display font-extrabold tracking-[-0.02em] leading-[1.1] mb-4" style="font-size:clamp(2rem,4vw,3rem)">Stack Lume <span class="gradient-text">REST API</span></h1>
+        <p class="text-[#9896b8] text-[1rem] leading-[1.7] mb-7">Integrate the full Stack Lume product suite into your applications with a single, unified REST API. JSON-first, OpenAPI 3.1 compliant, and built for enterprise scale.</p>
+        <div class="flex gap-3 flex-wrap">
+          <a href="#quickstart" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-md shadow-violet-900/30 hover:shadow-violet-900/50 hover:-translate-y-0.5 transition-all duration-200">
+            <i class="bi bi-key-fill"></i>
             Get API Key
           </a>
-          <a href="#endpoints" class="btn btn-outline">Browse Endpoints</a>
+          <a href="#endpoints" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm text-violet-400 border border-violet-600/40 hover:bg-violet-600/10 hover:border-violet-400 transition-all duration-200">
+            <i class="bi bi-journal-code"></i>
+            Browse Endpoints
+          </a>
         </div>
       </div>
-      <div class="api-hero__code-block">
-        <div class="code-header">
-          <div class="code-dots"><span></span><span></span><span></span></div>
-          <span class="code-lang">example.sh</span>
-          <button class="code-copy" onclick="copyCode(this)">Copy</button>
+      <div class="bg-lume-card border border-white/[0.08] rounded-2xl overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-white/[0.08] bg-white/[0.02]">
+          <div class="flex gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+          </div>
+          <span class="text-[0.75rem] text-[#4e4c6a] font-mono">example.sh</span>
+          <button class="text-[0.75rem] text-[#9896b8] bg-transparent border-0 cursor-pointer px-2 py-0.5 rounded hover:bg-white/[0.08] hover:text-[#f1f0ff] transition-all duration-200 font-sans" onclick="copyCode(this)">Copy</button>
         </div>
-        <pre><span class="cm"># LumeCore: run an AI workflow</span>
-<span class="fn">curl</span> -X POST \
+        <pre class="px-5 py-5 overflow-x-auto font-mono text-[0.82rem] leading-[1.7] text-[#e2e0ff]"><span class="text-[#4e4c6a] italic"># LumeCore: run an AI workflow</span>
+<span class="text-blue-400">curl</span> -X POST \
   https://api.stacklume.cloud/v1/workflows/run \
-  -H <span class="str">"Authorization: Bearer $LUMEKEY"</span> \
-  -H <span class="str">"Content-Type: application/json"</span> \
-  -d <span class="str">'{
+  -H <span class="text-emerald-400">"Authorization: Bearer $LUMEKEY"</span> \
+  -H <span class="text-emerald-400">"Content-Type: application/json"</span> \
+  -d <span class="text-emerald-400">'{
     "workflow_id": "wf_compliance_check",
     "input": {
       "text": "Patient DOB 01/01/1980...",
@@ -186,181 +102,253 @@
     "trust_score_min": 0.92
   }'</span>
 
-<span class="cm"># Response</span>
-<span class="num">{</span>
-  <span class="str">"run_id"</span>: <span class="str">"run_3kX9..."</span>,
-  <span class="str">"status"</span>: <span class="str">"completed"</span>,
-  <span class="str">"trust_score"</span>: <span class="num">0.97</span>,
-  <span class="str">"output"</span>: <span class="num">{...}</span>,
-  <span class="str">"latency_ms"</span>: <span class="num">84</span>
-<span class="num">}</span></pre>
+<span class="text-[#4e4c6a] italic"># Response</span>
+<span class="text-amber-400">{</span>
+  <span class="text-emerald-400">"run_id"</span>: <span class="text-emerald-400">"run_3kX9..."</span>,
+  <span class="text-emerald-400">"status"</span>: <span class="text-emerald-400">"completed"</span>,
+  <span class="text-emerald-400">"trust_score"</span>: <span class="text-amber-400">0.97</span>,
+  <span class="text-emerald-400">"output"</span>: <span class="text-amber-400">{...}</span>,
+  <span class="text-emerald-400">"latency_ms"</span>: <span class="text-amber-400">84</span>
+<span class="text-amber-400">}</span></pre>
       </div>
     </div>
   </div>
 </section>
 
-<!-- QUICKSTART -->
-<section class="section" id="quickstart">
-  <div class="container">
-    <span class="eyebrow">Quickstart</span>
-    <h2 class="section-title">Up in <span class="gradient-text">5 Minutes</span></h2>
-    <p class="section-sub">Get your first Stack Lume API call working in minutes.</p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
-      <div class="api-hero__code-block">
-        <div class="code-header">
-          <div class="code-dots"><span></span><span></span><span></span></div>
-          <span class="code-lang">Node.js</span>
-          <button class="code-copy" onclick="copyCode(this)">Copy</button>
+<!-- ─── QUICKSTART ─── -->
+<section class="py-[72px]" id="quickstart">
+  <div class="max-w-[1100px] mx-auto px-6">
+    <div class="flex items-center gap-2 mb-2">
+      <i class="bi bi-lightning-charge-fill text-violet-400 text-sm"></i>
+      <span class="text-[0.72rem] font-semibold tracking-[0.1em] uppercase text-violet-400">Quickstart</span>
+    </div>
+    <h2 class="font-display text-[1.8rem] font-bold tracking-[-0.02em] mb-2">Up in <span class="gradient-text">5 Minutes</span></h2>
+    <p class="text-[#9896b8] text-[0.95rem] mb-10">Get your first Stack Lume API call working in minutes.</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-lume-card border border-white/[0.08] rounded-2xl overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-white/[0.08] bg-white/[0.02]">
+          <div class="flex gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+          </div>
+          <span class="text-[0.75rem] text-[#4e4c6a] font-mono">Node.js</span>
+          <button class="text-[0.75rem] text-[#9896b8] bg-transparent border-0 cursor-pointer px-2 py-0.5 rounded hover:bg-white/[0.08] hover:text-[#f1f0ff] transition-all duration-200 font-sans" onclick="copyCode(this)">Copy</button>
         </div>
-        <pre><span class="kw">import</span> <span class="fn">StackLume</span> <span class="kw">from</span> <span class="str">'@stacklume/sdk'</span>;
+        <pre class="px-5 py-5 overflow-x-auto font-mono text-[0.82rem] leading-[1.7] text-[#e2e0ff]"><span class="text-violet-400">import</span> <span class="text-blue-400">StackLume</span> <span class="text-violet-400">from</span> <span class="text-emerald-400">'@stacklume/sdk'</span>;
 
-<span class="kw">const</span> client = <span class="kw">new</span> <span class="fn">StackLume</span>(<span class="num">{</span>
-  apiKey: process.env.<span class="fn">LUMEKEY</span>
-<span class="num">}</span>);
+<span class="text-violet-400">const</span> client = <span class="text-violet-400">new</span> <span class="text-blue-400">StackLume</span>(<span class="text-amber-400">{</span>
+  apiKey: process.env.<span class="text-blue-400">LUMEKEY</span>
+<span class="text-amber-400">}</span>);
 
-<span class="cm">// Run a TrustWeave verification</span>
-<span class="kw">const</span> result = <span class="kw">await</span> client.trustweave.<span class="fn">verify</span>(<span class="num">{</span>
-  text: <span class="str">'The Eiffel Tower is in Berlin.'</span>,
-  mode: <span class="str">'strict'</span>
-<span class="num">}</span>);
+<span class="text-[#4e4c6a] italic">// Run a TrustWeave verification</span>
+<span class="text-violet-400">const</span> result = <span class="text-violet-400">await</span> client.trustweave.<span class="text-blue-400">verify</span>(<span class="text-amber-400">{</span>
+  text: <span class="text-emerald-400">'The Eiffel Tower is in Berlin.'</span>,
+  mode: <span class="text-emerald-400">'strict'</span>
+<span class="text-amber-400">}</span>);
 
-console.<span class="fn">log</span>(result.trust_score);  <span class="cm">// 0.04</span>
-console.<span class="fn">log</span>(result.corrections);  <span class="cm">// [{...}]</span></pre>
+console.<span class="text-blue-400">log</span>(result.trust_score);  <span class="text-[#4e4c6a] italic">// 0.04</span>
+console.<span class="text-blue-400">log</span>(result.corrections);  <span class="text-[#4e4c6a] italic">// [{...}]</span></pre>
       </div>
-      <div class="api-hero__code-block">
-        <div class="code-header">
-          <div class="code-dots"><span></span><span></span><span></span></div>
-          <span class="code-lang">Python</span>
-          <button class="code-copy" onclick="copyCode(this)">Copy</button>
+      <div class="bg-lume-card border border-white/[0.08] rounded-2xl overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-white/[0.08] bg-white/[0.02]">
+          <div class="flex gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+          </div>
+          <span class="text-[0.75rem] text-[#4e4c6a] font-mono">Python</span>
+          <button class="text-[0.75rem] text-[#9896b8] bg-transparent border-0 cursor-pointer px-2 py-0.5 rounded hover:bg-white/[0.08] hover:text-[#f1f0ff] transition-all duration-200 font-sans" onclick="copyCode(this)">Copy</button>
         </div>
-        <pre><span class="kw">from</span> stacklume <span class="kw">import</span> StackLume
+        <pre class="px-5 py-5 overflow-x-auto font-mono text-[0.82rem] leading-[1.7] text-[#e2e0ff]"><span class="text-violet-400">from</span> stacklume <span class="text-violet-400">import</span> StackLume
 
-client = <span class="fn">StackLume</span>(api_key=<span class="str">"your-key"</span>)
+client = <span class="text-blue-400">StackLume</span>(api_key=<span class="text-emerald-400">"your-key"</span>)
 
-<span class="cm"># Generate synthetic data with EchoSynth</span>
-dataset = client.echosynth.<span class="fn">generate</span>(
-    schema=<span class="str">"customer_transactions_v2"</span>,
-    count=<span class="num">10_000</span>,
-    privacy_level=<span class="str">"differential"</span>,
-    epsilon=<span class="num">1.5</span>
+<span class="text-[#4e4c6a] italic"># Generate synthetic data with EchoSynth</span>
+dataset = client.echosynth.<span class="text-blue-400">generate</span>(
+    schema=<span class="text-emerald-400">"customer_transactions_v2"</span>,
+    count=<span class="text-amber-400">10_000</span>,
+    privacy_level=<span class="text-emerald-400">"differential"</span>,
+    epsilon=<span class="text-amber-400">1.5</span>
 )
 
-<span class="kw">for</span> record <span class="kw">in</span> dataset.<span class="fn">iter_records</span>():
-    <span class="fn">print</span>(record)</pre>
+<span class="text-violet-400">for</span> record <span class="text-violet-400">in</span> dataset.<span class="text-blue-400">iter_records</span>():
+    <span class="text-blue-400">print</span>(record)</pre>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ENDPOINTS -->
-<section class="section" style="padding-top:0;" id="endpoints">
-  <div class="container">
-    <span class="eyebrow">API Reference</span>
-    <h2 class="section-title">Endpoints</h2>
-    <p class="section-sub">Base URL: <code style="font-family:var(--font-mono);color:var(--purple-light);">https://api.stacklume.cloud/v1</code></p>
-    <div class="endpoint-tabs" id="endpointTabs">
-      <button class="endpoint-tab active" data-group="all">All</button>
-      <button class="endpoint-tab" data-group="lumecore">LumeCore</button>
-      <button class="endpoint-tab" data-group="trustweave">TrustWeave</button>
-      <button class="endpoint-tab" data-group="echosynth">EchoSynth</button>
-      <button class="endpoint-tab" data-group="voicelume">VoiceLume</button>
-      <button class="endpoint-tab" data-group="memorystack">MemoryStack</button>
+<!-- ─── ENDPOINTS ─── -->
+<section class="py-[72px] pt-0" id="endpoints">
+  <div class="max-w-[1100px] mx-auto px-6">
+    <div class="flex items-center gap-2 mb-2">
+      <i class="bi bi-journal-code text-violet-400 text-sm"></i>
+      <span class="text-[0.72rem] font-semibold tracking-[0.1em] uppercase text-violet-400">API Reference</span>
     </div>
-    <div class="endpoints-list" id="endpointsList"></div>
+    <h2 class="font-display text-[1.8rem] font-bold tracking-[-0.02em] mb-2">Endpoints</h2>
+    <p class="text-[#9896b8] text-[0.95rem] mb-10">Base URL: <code class="font-mono text-violet-400">https://api.stacklume.cloud/v1</code></p>
+    <div class="flex gap-1 mb-6 flex-wrap" id="endpointTabs">
+      <button class="endpoint-tab px-4 py-2 text-[0.875rem] font-medium text-[#9896b8] rounded-lg bg-transparent border border-transparent cursor-pointer font-sans transition-all duration-200 hover:text-[#9896b8] hover:bg-white/[0.03] [&.active]:text-[#f1f0ff] [&.active]:bg-lume-card [&.active]:border-white/[0.08]" data-group="all">All</button>
+      <button class="endpoint-tab px-4 py-2 text-[0.875rem] font-medium text-[#9896b8] rounded-lg bg-transparent border border-transparent cursor-pointer font-sans transition-all duration-200 hover:text-[#9896b8] hover:bg-white/[0.03] [&.active]:text-[#f1f0ff] [&.active]:bg-lume-card [&.active]:border-white/[0.08]" data-group="lumecore">LumeCore</button>
+      <button class="endpoint-tab px-4 py-2 text-[0.875rem] font-medium text-[#9896b8] rounded-lg bg-transparent border border-transparent cursor-pointer font-sans transition-all duration-200 hover:text-[#9896b8] hover:bg-white/[0.03] [&.active]:text-[#f1f0ff] [&.active]:bg-lume-card [&.active]:border-white/[0.08]" data-group="trustweave">TrustWeave</button>
+      <button class="endpoint-tab px-4 py-2 text-[0.875rem] font-medium text-[#9896b8] rounded-lg bg-transparent border border-transparent cursor-pointer font-sans transition-all duration-200 hover:text-[#9896b8] hover:bg-white/[0.03] [&.active]:text-[#f1f0ff] [&.active]:bg-lume-card [&.active]:border-white/[0.08]" data-group="echosynth">EchoSynth</button>
+      <button class="endpoint-tab px-4 py-2 text-[0.875rem] font-medium text-[#9896b8] rounded-lg bg-transparent border border-transparent cursor-pointer font-sans transition-all duration-200 hover:text-[#9896b8] hover:bg-white/[0.03] [&.active]:text-[#f1f0ff] [&.active]:bg-lume-card [&.active]:border-white/[0.08]" data-group="voicelume">VoiceLume</button>
+      <button class="endpoint-tab px-4 py-2 text-[0.875rem] font-medium text-[#9896b8] rounded-lg bg-transparent border border-transparent cursor-pointer font-sans transition-all duration-200 hover:text-[#9896b8] hover:bg-white/[0.03] [&.active]:text-[#f1f0ff] [&.active]:bg-lume-card [&.active]:border-white/[0.08]" data-group="memorystack">MemoryStack</button>
+    </div>
+    <div class="flex flex-col gap-2.5" id="endpointsList"></div>
   </div>
 </section>
 
-<!-- SDKs -->
-<section class="section" style="background:var(--bg-2);padding:72px 0;" id="sdks">
-  <div class="container">
-    <span class="eyebrow">Client Libraries</span>
-    <h2 class="section-title">Official <span class="gradient-text">SDKs</span></h2>
-    <p class="section-sub">Use our officially maintained SDKs to integrate Stack Lume in your language of choice.</p>
-    <div class="sdk-grid">
-      <div class="sdk-card"><div class="sdk-icon">🟨</div><h4>JavaScript / TypeScript</h4><p>@stacklume/sdk</p><span class="sdk-status sdk-status-ga">GA</span></div>
-      <div class="sdk-card"><div class="sdk-icon">🐍</div><h4>Python</h4><p>stacklume</p><span class="sdk-status sdk-status-ga">GA</span></div>
-      <div class="sdk-card"><div class="sdk-icon">☕</div><h4>Java</h4><p>com.stacklume:client</p><span class="sdk-status sdk-status-ga">GA</span></div>
-      <div class="sdk-card"><div class="sdk-icon">🦀</div><h4>Rust</h4><p>stacklume</p><span class="sdk-status sdk-status-beta">Beta</span></div>
-      <div class="sdk-card"><div class="sdk-icon">🐹</div><h4>Go</h4><p>github.com/stacklume/go</p><span class="sdk-status sdk-status-ga">GA</span></div>
-      <div class="sdk-card"><div class="sdk-icon">💎</div><h4>Ruby</h4><p>stacklume</p><span class="sdk-status sdk-status-beta">Beta</span></div>
-      <div class="sdk-card"><div class="sdk-icon">🐘</div><h4>PHP</h4><p>stacklume/client</p><span class="sdk-status sdk-status-beta">Beta</span></div>
-      <div class="sdk-card"><div class="sdk-icon">⚡</div><h4>.NET / C#</h4><p>StackLume.Client</p><span class="sdk-status sdk-status-soon">Coming Soon</span></div>
+<!-- ─── SDKs ─── -->
+<section class="py-[72px] bg-lume-bg2" id="sdks">
+  <div class="max-w-[1100px] mx-auto px-6">
+    <div class="flex items-center gap-2 mb-2">
+      <i class="bi bi-code-slash text-violet-400 text-sm"></i>
+      <span class="text-[0.72rem] font-semibold tracking-[0.1em] uppercase text-violet-400">Client Libraries</span>
     </div>
-  </div>
-</section>
-
-<!-- AUTH -->
-<section class="section" id="auth">
-  <div class="container">
-    <span class="eyebrow">Authentication</span>
-    <h2 class="section-title">API Keys &amp; <span class="gradient-text">OAuth 2.0</span></h2>
-    <p class="section-sub">All API requests must be authenticated. We support both API key and OAuth 2.0 bearer token auth.</p>
-    <div class="auth-box">
-      <h3>API Key Authentication</h3>
-      <p>Pass your API key as a Bearer token in the Authorization header. Keys are scoped to products, environments, and rate limits.</p>
-      <div class="key-input-wrap">
-        <input class="key-input" value="lume_live_••••••••••••••••••••••••••••••••" readonly />
-        <button class="btn btn-primary" onclick="alert('Sign up at stacklume.cloud to generate a real API key.')">Generate Key</button>
+    <h2 class="font-display text-[1.8rem] font-bold tracking-[-0.02em] mb-2">Official <span class="gradient-text">SDKs</span></h2>
+    <p class="text-[#9896b8] text-[0.95rem] mb-10">Use our officially maintained SDKs to integrate Stack Lume in your language of choice.</p>
+    <div class="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-3.5">
+      <div class="bg-lume-card border border-white/[0.08] rounded-lg p-5 flex flex-col gap-2.5 items-center text-center transition-all duration-200 cursor-pointer hover:border-violet-600/40 hover:-translate-y-0.5">
+        <span class="text-3xl">🟨</span>
+        <h4 class="text-[0.95rem] font-semibold">JavaScript / TypeScript</h4>
+        <p class="text-[0.8rem] text-[#9896b8]">@stacklume/sdk</p>
+        <span class="text-[0.7rem] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-400">GA</span>
+      </div>
+      <div class="bg-lume-card border border-white/[0.08] rounded-lg p-5 flex flex-col gap-2.5 items-center text-center transition-all duration-200 cursor-pointer hover:border-violet-600/40 hover:-translate-y-0.5">
+        <span class="text-3xl">🐍</span>
+        <h4 class="text-[0.95rem] font-semibold">Python</h4>
+        <p class="text-[0.8rem] text-[#9896b8]">stacklume</p>
+        <span class="text-[0.7rem] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-400">GA</span>
+      </div>
+      <div class="bg-lume-card border border-white/[0.08] rounded-lg p-5 flex flex-col gap-2.5 items-center text-center transition-all duration-200 cursor-pointer hover:border-violet-600/40 hover:-translate-y-0.5">
+        <span class="text-3xl">☕</span>
+        <h4 class="text-[0.95rem] font-semibold">Java</h4>
+        <p class="text-[0.8rem] text-[#9896b8]">com.stacklume:client</p>
+        <span class="text-[0.7rem] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-400">GA</span>
+      </div>
+      <div class="bg-lume-card border border-white/[0.08] rounded-lg p-5 flex flex-col gap-2.5 items-center text-center transition-all duration-200 cursor-pointer hover:border-violet-600/40 hover:-translate-y-0.5">
+        <span class="text-3xl">🦀</span>
+        <h4 class="text-[0.95rem] font-semibold">Rust</h4>
+        <p class="text-[0.8rem] text-[#9896b8]">stacklume</p>
+        <span class="text-[0.7rem] font-semibold px-2 py-0.5 rounded-full bg-amber-400/12 text-amber-400">Beta</span>
+      </div>
+      <div class="bg-lume-card border border-white/[0.08] rounded-lg p-5 flex flex-col gap-2.5 items-center text-center transition-all duration-200 cursor-pointer hover:border-violet-600/40 hover:-translate-y-0.5">
+        <span class="text-3xl">🐹</span>
+        <h4 class="text-[0.95rem] font-semibold">Go</h4>
+        <p class="text-[0.8rem] text-[#9896b8]">github.com/stacklume/go</p>
+        <span class="text-[0.7rem] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/12 text-emerald-400">GA</span>
+      </div>
+      <div class="bg-lume-card border border-white/[0.08] rounded-lg p-5 flex flex-col gap-2.5 items-center text-center transition-all duration-200 cursor-pointer hover:border-violet-600/40 hover:-translate-y-0.5">
+        <span class="text-3xl">💎</span>
+        <h4 class="text-[0.95rem] font-semibold">Ruby</h4>
+        <p class="text-[0.8rem] text-[#9896b8]">stacklume</p>
+        <span class="text-[0.7rem] font-semibold px-2 py-0.5 rounded-full bg-amber-400/12 text-amber-400">Beta</span>
+      </div>
+      <div class="bg-lume-card border border-white/[0.08] rounded-lg p-5 flex flex-col gap-2.5 items-center text-center transition-all duration-200 cursor-pointer hover:border-violet-600/40 hover:-translate-y-0.5">
+        <span class="text-3xl">🐘</span>
+        <h4 class="text-[0.95rem] font-semibold">PHP</h4>
+        <p class="text-[0.8rem] text-[#9896b8]">stacklume/client</p>
+        <span class="text-[0.7rem] font-semibold px-2 py-0.5 rounded-full bg-amber-400/12 text-amber-400">Beta</span>
+      </div>
+      <div class="bg-lume-card border border-white/[0.08] rounded-lg p-5 flex flex-col gap-2.5 items-center text-center transition-all duration-200 cursor-pointer hover:border-violet-600/40 hover:-translate-y-0.5">
+        <span class="text-3xl">⚡</span>
+        <h4 class="text-[0.95rem] font-semibold">.NET / C#</h4>
+        <p class="text-[0.8rem] text-[#9896b8]">StackLume.Client</p>
+        <span class="text-[0.7rem] font-semibold px-2 py-0.5 rounded-full bg-white/[0.12] text-[#4e4c6a]">Coming Soon</span>
       </div>
     </div>
-    <div class="auth-box">
-      <h3>OAuth 2.0 / OIDC</h3>
-      <p>For enterprise SSO integrations, Stack Lume supports OAuth 2.0 Authorization Code flow with PKCE, and OIDC for identity federation with your corporate IdP (Okta, Azure AD, Ping Identity).</p>
-      <div class="api-hero__code-block" style="margin-top:8px;">
-        <div class="code-header">
-          <div class="code-dots"><span></span><span></span><span></span></div>
-          <span class="code-lang">OAuth token exchange</span>
+  </div>
+</section>
+
+<!-- ─── AUTH ─── -->
+<section class="py-[72px]" id="auth">
+  <div class="max-w-[1100px] mx-auto px-6">
+    <div class="flex items-center gap-2 mb-2">
+      <i class="bi bi-shield-lock-fill text-violet-400 text-sm"></i>
+      <span class="text-[0.72rem] font-semibold tracking-[0.1em] uppercase text-violet-400">Authentication</span>
+    </div>
+    <h2 class="font-display text-[1.8rem] font-bold tracking-[-0.02em] mb-2">API Keys &amp; <span class="gradient-text">OAuth 2.0</span></h2>
+    <p class="text-[#9896b8] text-[0.95rem] mb-10">All API requests must be authenticated. We support both API key and OAuth 2.0 bearer token auth.</p>
+
+    <div class="bg-lume-card border border-white/[0.08] rounded-2xl p-8 mb-6">
+      <div class="flex items-center gap-2 mb-2.5">
+        <i class="bi bi-key-fill text-violet-400"></i>
+        <h3 class="font-display font-semibold">API Key Authentication</h3>
+      </div>
+      <p class="text-[#9896b8] text-[0.92rem] mb-4 leading-[1.6]">Pass your API key as a Bearer token in the Authorization header. Keys are scoped to products, environments, and rate limits.</p>
+      <div class="flex gap-2.5 items-center">
+        <input class="flex-1 bg-lume-bg border border-white/[0.08] rounded-lg text-[#9896b8] font-mono text-[0.85rem] px-4 py-2.5 outline-none tracking-[0.05em]" value="lume_live_••••••••••••••••••••••••••••••••" readonly />
+        <button class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold text-sm bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-md shadow-violet-900/30 hover:shadow-violet-900/50 hover:-translate-y-0.5 transition-all duration-200 border-0 cursor-pointer font-sans" onclick="alert('Sign up at stacklume.cloud to generate a real API key.')">Generate Key</button>
+      </div>
+    </div>
+
+    <div class="bg-lume-card border border-white/[0.08] rounded-2xl p-8">
+      <div class="flex items-center gap-2 mb-2.5">
+        <i class="bi bi-shield-lock-fill text-violet-400"></i>
+        <h3 class="font-display font-semibold">OAuth 2.0 / OIDC</h3>
+      </div>
+      <p class="text-[#9896b8] text-[0.92rem] mb-4 leading-[1.6]">For enterprise SSO integrations, Stack Lume supports OAuth 2.0 Authorization Code flow with PKCE, and OIDC for identity federation with your corporate IdP (Okta, Azure AD, Ping Identity).</p>
+      <div class="bg-lume-card border border-white/[0.08] rounded-2xl overflow-hidden mt-2">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-white/[0.08] bg-white/[0.02]">
+          <div class="flex gap-1.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+          </div>
+          <span class="text-[0.75rem] text-[#4e4c6a] font-mono">OAuth token exchange</span>
         </div>
-        <pre><span class="fn">POST</span> https://auth.stacklume.cloud/oauth/token
-<span class="kw">Content-Type:</span> <span class="str">application/x-www-form-urlencoded</span>
+        <pre class="px-5 py-5 overflow-x-auto font-mono text-[0.82rem] leading-[1.7] text-[#e2e0ff]"><span class="text-blue-400">POST</span> https://auth.stacklume.cloud/oauth/token
+<span class="text-violet-400">Content-Type:</span> <span class="text-emerald-400">application/x-www-form-urlencoded</span>
 
 grant_type=client_credentials
-&client_id=<span class="num">YOUR_CLIENT_ID</span>
-&client_secret=<span class="num">YOUR_CLIENT_SECRET</span>
-&scope=<span class="str">lumecore:run trustweave:verify echosynth:generate</span></pre>
+&client_id=<span class="text-amber-400">YOUR_CLIENT_ID</span>
+&client_secret=<span class="text-amber-400">YOUR_CLIENT_SECRET</span>
+&scope=<span class="text-emerald-400">lumecore:run trustweave:verify echosynth:generate</span></pre>
       </div>
     </div>
   </div>
 </section>
 
-<!-- RATE LIMITS -->
-<section class="section" style="background:var(--bg-2);padding:72px 0;" id="rate-limits">
-  <div class="container">
-    <span class="eyebrow">Rate Limits</span>
-    <h2 class="section-title"><span class="gradient-text">Limits</span> &amp; Quotas</h2>
-    <p class="section-sub">Rate limits are applied per API key, per product, and per minute.</p>
-    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
-      <table class="limits-table">
+<!-- ─── RATE LIMITS ─── -->
+<section class="py-[72px] bg-lume-bg2" id="rate-limits">
+  <div class="max-w-[1100px] mx-auto px-6">
+    <span class="text-[0.72rem] font-semibold tracking-[0.1em] uppercase text-violet-400 mb-2 block">Rate Limits</span>
+    <h2 class="font-display text-[1.8rem] font-bold tracking-[-0.02em] mb-2"><span class="gradient-text">Limits</span> &amp; Quotas</h2>
+    <p class="text-[#9896b8] text-[0.95rem] mb-10">Rate limits are applied per API key, per product, and per minute.</p>
+    <div class="bg-lume-card border border-white/[0.08] rounded-2xl overflow-hidden">
+      <table class="w-full border-collapse">
         <thead>
           <tr>
-            <th>Plan</th>
-            <th>Requests / min</th>
-            <th>Requests / day</th>
-            <th>Concurrent workflows</th>
-            <th>SLA</th>
+            <th class="px-4 py-3 text-left text-[0.78rem] font-medium text-[#9896b8] uppercase tracking-[0.07em] border-b border-white/[0.08]">Plan</th>
+            <th class="px-4 py-3 text-left text-[0.78rem] font-medium text-[#9896b8] uppercase tracking-[0.07em] border-b border-white/[0.08]">Requests / min</th>
+            <th class="px-4 py-3 text-left text-[0.78rem] font-medium text-[#9896b8] uppercase tracking-[0.07em] border-b border-white/[0.08]">Requests / day</th>
+            <th class="px-4 py-3 text-left text-[0.78rem] font-medium text-[#9896b8] uppercase tracking-[0.07em] border-b border-white/[0.08]">Concurrent workflows</th>
+            <th class="px-4 py-3 text-left text-[0.78rem] font-medium text-[#9896b8] uppercase tracking-[0.07em] border-b border-white/[0.08]">SLA</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td><span class="plan-badge plan-free">Free</span></td>
-            <td>60</td>
-            <td>5,000</td>
-            <td>2</td>
-            <td>Best effort</td>
+          <tr class="hover:bg-white/[0.02] transition-colors">
+            <td class="px-4 py-3 text-[0.875rem] border-b border-white/[0.08]"><span class="inline-block text-[0.72rem] font-semibold px-2 py-0.5 rounded-full tracking-[0.05em] bg-white/[0.2] text-[#9896b8]">Free</span></td>
+            <td class="px-4 py-3 text-[0.875rem] border-b border-white/[0.08]">60</td>
+            <td class="px-4 py-3 text-[0.875rem] border-b border-white/[0.08]">5,000</td>
+            <td class="px-4 py-3 text-[0.875rem] border-b border-white/[0.08]">2</td>
+            <td class="px-4 py-3 text-[0.875rem] border-b border-white/[0.08]">Best effort</td>
           </tr>
-          <tr>
-            <td><span class="plan-badge plan-pro">Pro</span></td>
-            <td>600</td>
-            <td>250,000</td>
-            <td>20</td>
-            <td>99.9%</td>
+          <tr class="hover:bg-white/[0.02] transition-colors">
+            <td class="px-4 py-3 text-[0.875rem] border-b border-white/[0.08]"><span class="inline-block text-[0.72rem] font-semibold px-2 py-0.5 rounded-full tracking-[0.05em] bg-blue-600/15 text-blue-400">Pro</span></td>
+            <td class="px-4 py-3 text-[0.875rem] border-b border-white/[0.08]">600</td>
+            <td class="px-4 py-3 text-[0.875rem] border-b border-white/[0.08]">250,000</td>
+            <td class="px-4 py-3 text-[0.875rem] border-b border-white/[0.08]">20</td>
+            <td class="px-4 py-3 text-[0.875rem] border-b border-white/[0.08]">99.9%</td>
           </tr>
-          <tr>
-            <td><span class="plan-badge plan-enterprise">Enterprise</span></td>
-            <td>Unlimited</td>
-            <td>Unlimited</td>
-            <td>Unlimited</td>
-            <td>99.99%</td>
+          <tr class="hover:bg-white/[0.02] transition-colors">
+            <td class="px-4 py-3 text-[0.875rem]"><span class="inline-block text-[0.72rem] font-semibold px-2 py-0.5 rounded-full tracking-[0.05em] bg-violet-600/15 text-violet-400">Enterprise</span></td>
+            <td class="px-4 py-3 text-[0.875rem]">Unlimited</td>
+            <td class="px-4 py-3 text-[0.875rem]">Unlimited</td>
+            <td class="px-4 py-3 text-[0.875rem]">Unlimited</td>
+            <td class="px-4 py-3 text-[0.875rem]">99.99%</td>
           </tr>
         </tbody>
       </table>
@@ -368,14 +356,14 @@ grant_type=client_credentials
   </div>
 </section>
 
-<footer>
-  <div class="container footer-inner">
-    <p>&copy; 2025 Stack Lume, Inc. — api.stacklume.cloud</p>
-    <div class="footer-links">
-      <a href="https://stacklume.cloud">Main Site</a>
-      <a href="https://demo.stacklume.cloud">Demo</a>
-      <a href="https://stacklume.cloud#contact">Contact</a>
-      <a href="#">Status</a>
+<footer class="py-8 border-t border-white/[0.08] bg-lume-bg2">
+  <div class="max-w-[1100px] mx-auto px-6 flex justify-between items-center flex-wrap gap-4">
+    <p class="text-[0.8rem] text-[#4e4c6a]">&copy; 2025 Stack Lume, Inc. — api.stacklume.cloud</p>
+    <div class="flex gap-5">
+      <a href="https://stacklume.cloud" class="text-[0.8rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">Main Site</a>
+      <a href="https://demo.stacklume.cloud" class="text-[0.8rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">Demo</a>
+      <a href="https://stacklume.cloud#contact" class="text-[0.8rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">Contact</a>
+      <a href="#" class="text-[0.8rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">Status</a>
     </div>
   </div>
 </footer>
@@ -383,22 +371,22 @@ grant_type=client_credentials
 <script>
   // Endpoints data
   const endpoints = [
-    {group:'lumecore', method:'POST', path:'/workflows/run',       desc:'Execute an AI workflow',           badge:'Core'},
-    {group:'lumecore', method:'GET',  path:'/workflows/{id}/runs', desc:'List runs for a workflow',         badge:'Core'},
-    {group:'lumecore', method:'GET',  path:'/runs/{run_id}',       desc:'Get run status and output',        badge:'Core'},
-    {group:'lumecore', method:'POST', path:'/workflows',           desc:'Create a new workflow definition',  badge:'Core'},
-    {group:'lumecore', method:'DELETE',path:'/workflows/{id}',     desc:'Delete a workflow',                badge:'Core'},
-    {group:'trustweave',method:'POST',path:'/trustweave/verify',   desc:'Verify AI output trust score',     badge:'TrustWeave'},
-    {group:'trustweave',method:'POST',path:'/trustweave/batch',    desc:'Batch verify multiple outputs',    badge:'TrustWeave'},
-    {group:'echosynth', method:'POST',path:'/echosynth/generate',  desc:'Generate synthetic dataset',       badge:'EchoSynth'},
-    {group:'echosynth', method:'GET', path:'/echosynth/schemas',   desc:'List available data schemas',      badge:'EchoSynth'},
-    {group:'echosynth', method:'GET', path:'/echosynth/jobs/{id}', desc:'Poll generation job status',       badge:'EchoSynth'},
-    {group:'voicelume', method:'POST',path:'/voicelume/synthesize',desc:'Synthesize compliant audio',       badge:'VoiceLume'},
-    {group:'voicelume', method:'POST',path:'/voicelume/clone',     desc:'Clone a voice with consent token', badge:'VoiceLume'},
-    {group:'voicelume', method:'GET', path:'/voicelume/voices',    desc:'List available voice profiles',    badge:'VoiceLume'},
-    {group:'memorystack',method:'POST',path:'/memory/store',       desc:'Store context/memory for session', badge:'MemoryStack'},
-    {group:'memorystack',method:'GET', path:'/memory/{session_id}',desc:'Retrieve session memory',          badge:'MemoryStack'},
-    {group:'memorystack',method:'DELETE',path:'/memory/{session_id}',desc:'Delete session memory (GDPR)',  badge:'MemoryStack'},
+    {group:'lumecore',   method:'POST',   path:'/workflows/run',        desc:'Execute an AI workflow',            badge:'Core'},
+    {group:'lumecore',   method:'GET',    path:'/workflows/{id}/runs',  desc:'List runs for a workflow',          badge:'Core'},
+    {group:'lumecore',   method:'GET',    path:'/runs/{run_id}',        desc:'Get run status and output',         badge:'Core'},
+    {group:'lumecore',   method:'POST',   path:'/workflows',            desc:'Create a new workflow definition',  badge:'Core'},
+    {group:'lumecore',   method:'DELETE', path:'/workflows/{id}',       desc:'Delete a workflow',                 badge:'Core'},
+    {group:'trustweave', method:'POST',   path:'/trustweave/verify',    desc:'Verify AI output trust score',      badge:'TrustWeave'},
+    {group:'trustweave', method:'POST',   path:'/trustweave/batch',     desc:'Batch verify multiple outputs',     badge:'TrustWeave'},
+    {group:'echosynth',  method:'POST',   path:'/echosynth/generate',   desc:'Generate synthetic dataset',        badge:'EchoSynth'},
+    {group:'echosynth',  method:'GET',    path:'/echosynth/schemas',    desc:'List available data schemas',       badge:'EchoSynth'},
+    {group:'echosynth',  method:'GET',    path:'/echosynth/jobs/{id}',  desc:'Poll generation job status',        badge:'EchoSynth'},
+    {group:'voicelume',  method:'POST',   path:'/voicelume/synthesize', desc:'Synthesize compliant audio',        badge:'VoiceLume'},
+    {group:'voicelume',  method:'POST',   path:'/voicelume/clone',      desc:'Clone a voice with consent token',  badge:'VoiceLume'},
+    {group:'voicelume',  method:'GET',    path:'/voicelume/voices',     desc:'List available voice profiles',     badge:'VoiceLume'},
+    {group:'memorystack',method:'POST',   path:'/memory/store',         desc:'Store context/memory for session',  badge:'MemoryStack'},
+    {group:'memorystack',method:'GET',    path:'/memory/{session_id}',  desc:'Retrieve session memory',           badge:'MemoryStack'},
+    {group:'memorystack',method:'DELETE', path:'/memory/{session_id}',  desc:'Delete session memory (GDPR)',      badge:'MemoryStack'},
   ];
   const methodColors = {GET:'method-get',POST:'method-post',PUT:'method-put',DELETE:'method-delete'};
   let activeGroup = 'all';
@@ -407,10 +395,10 @@ grant_type=client_credentials
     const list = document.getElementById('endpointsList');
     const filtered = activeGroup === 'all' ? endpoints : endpoints.filter(e => e.group === activeGroup);
     list.innerHTML = filtered.map(e => `
-      <div class="endpoint">
+      <div class="grid items-center gap-4 px-[18px] py-3.5 bg-lume-card border border-white/[0.08] rounded-lg transition-colors hover:border-violet-600/40" style="grid-template-columns:80px 1fr auto">
         <span class="method ${methodColors[e.method] || 'method-get'}">${e.method}</span>
         <span class="endpoint-path">/v1${e.path}</span>
-        <span class="endpoint-badge">${e.badge}</span>
+        <span class="endpoint-badge hidden md:inline">${e.badge}</span>
       </div>
     `).join('');
   }
@@ -422,11 +410,14 @@ grant_type=client_credentials
     e.target.classList.add('active');
     renderEndpoints();
   });
+
+  // Set first tab active
+  document.querySelector('.endpoint-tab[data-group="all"]').classList.add('active');
   renderEndpoints();
 
   // Copy code
   function copyCode(btn) {
-    const pre = btn.closest('.api-hero__code-block').querySelector('pre');
+    const pre = btn.closest('.bg-lume-card, .api-hero__code-block').querySelector('pre');
     navigator.clipboard.writeText(pre.innerText).then(() => {
       btn.textContent = 'Copied!';
       setTimeout(() => btn.textContent = 'Copy', 1800);

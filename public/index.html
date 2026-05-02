@@ -8,14 +8,34 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            lume: { bg: '#0a0a0f', bg2: '#0f0f1a', card: '#12121e', hover: '#17172a' }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['Space Grotesk', 'Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
   <link rel="stylesheet" href="/styles.css" />
 </head>
-<body>
+<body class="bg-lume-bg text-[#f1f0ff] font-sans antialiased overflow-x-hidden leading-relaxed" style="scroll-behavior:smooth;scroll-padding-top:80px">
 
   <!-- ─── NAV ─── -->
-  <nav class="nav" id="nav">
-    <div class="nav__inner container">
-      <a href="/" class="nav__logo" aria-label="Stack Lume home">
+  <nav class="nav fixed top-0 left-0 right-0 z-[100] border-b border-transparent transition-all duration-[250ms]" id="nav">
+    <div class="max-w-[1200px] mx-auto px-6 flex items-center justify-between h-[72px] gap-6">
+      <a href="/" class="flex items-center gap-2.5 font-display font-bold text-[1.1rem] tracking-[-0.01em] shrink-0" aria-label="Stack Lume home">
         <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
           <rect width="32" height="32" rx="8" fill="url(#logoGrad)"/>
           <path d="M8 20 L16 8 L24 20" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
@@ -29,318 +49,251 @@
         </svg>
         <span>Stack Lume</span>
       </a>
-      <button class="nav__toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
-        <span></span><span></span><span></span>
+      <button class="flex md:hidden flex-col gap-[5px] w-7 py-1 cursor-pointer border-0 bg-transparent" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+        <span class="block h-0.5 bg-[#9896b8] rounded-sm transition-all duration-[250ms]"></span>
+        <span class="block h-0.5 bg-[#9896b8] rounded-sm transition-all duration-[250ms]"></span>
+        <span class="block h-0.5 bg-[#9896b8] rounded-sm transition-all duration-[250ms]"></span>
       </button>
-      <ul class="nav__links" id="navLinks">
-        <li><a href="#products">Products</a></li>
-        <li><a href="#solutions">Solutions</a></li>
-        <li><a href="#about">About</a></li>
-        <li><a href="https://api.stacklume.cloud">API</a></li>
-        <li><a href="https://demo.stacklume.cloud" class="btn btn--sm btn--outline">Live Demo</a></li>
-        <li><a href="#contact" class="btn btn--sm btn--primary">Get Started</a></li>
+      <ul class="nav__links hidden md:flex items-center gap-1.5 list-none" id="navLinks">
+        <li><a href="#products" class="block px-3 py-[7px] text-[0.9rem] font-medium text-[#9896b8] rounded-lg hover:text-[#f1f0ff] hover:bg-white/5 transition-all duration-[250ms]">Products</a></li>
+        <li><a href="#solutions" class="block px-3 py-[7px] text-[0.9rem] font-medium text-[#9896b8] rounded-lg hover:text-[#f1f0ff] hover:bg-white/5 transition-all duration-[250ms]">Solutions</a></li>
+        <li><a href="#about" class="block px-3 py-[7px] text-[0.9rem] font-medium text-[#9896b8] rounded-lg hover:text-[#f1f0ff] hover:bg-white/5 transition-all duration-[250ms]">About</a></li>
+        <li><a href="https://api.stacklume.cloud" class="block px-3 py-[7px] text-[0.9rem] font-medium text-[#9896b8] rounded-lg hover:text-[#f1f0ff] hover:bg-white/5 transition-all duration-[250ms]">API</a></li>
+        <li><a href="https://demo.stacklume.cloud" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-violet-400 border border-violet-600/40 hover:bg-violet-600/10 hover:border-violet-400 transition-all duration-200">Live Demo</a></li>
+        <li><a href="#contact" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-md shadow-violet-900/30 hover:shadow-violet-900/50 hover:-translate-y-0.5 transition-all duration-200">Get Started</a></li>
       </ul>
     </div>
   </nav>
 
   <!-- ─── HERO ─── -->
-  <section class="hero" id="hero">
-    <div class="hero__bg" aria-hidden="true">
-      <div class="hero__orb hero__orb--1"></div>
-      <div class="hero__orb hero__orb--2"></div>
-      <div class="hero__orb hero__orb--3"></div>
-      <canvas class="hero__canvas" id="heroCanvas"></canvas>
+  <section class="relative min-h-svh flex items-center overflow-hidden" id="hero">
+    <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+      <div class="absolute w-[600px] h-[600px] rounded-full blur-[80px] -top-[200px] -left-[100px] animate-float-1" style="background:radial-gradient(circle,rgba(124,58,237,0.3),transparent 70%)"></div>
+      <div class="absolute w-[500px] h-[500px] rounded-full blur-[80px] top-[100px] -right-[150px] animate-float-2" style="background:radial-gradient(circle,rgba(37,99,235,0.25),transparent 70%)"></div>
+      <div class="absolute w-[400px] h-[400px] rounded-full blur-[80px] -bottom-[100px] left-[40%] animate-float-3" style="background:radial-gradient(circle,rgba(6,182,212,0.2),transparent 70%)"></div>
+      <canvas class="absolute inset-0 w-full h-full opacity-40" id="heroCanvas"></canvas>
     </div>
-    <div class="container hero__inner">
-      <div class="hero__badge" aria-label="New">
-        <span class="badge__dot"></span>
+    <div class="max-w-[1200px] mx-auto px-6 relative z-10 pt-[120px] pb-20 max-w-[760px]">
+      <div class="inline-flex items-center gap-2 bg-violet-600/15 border border-violet-600/30 rounded-full px-3.5 py-1.5 text-xs font-medium text-violet-400 mb-7" aria-label="New">
+        <span class="w-1.5 h-1.5 rounded-full bg-violet-400 animate-badge-dot"></span>
         Introducing LumeCore 2.0 — Now GA
       </div>
-      <h1 class="hero__headline">
+      <h1 class="font-display font-extrabold leading-[1.08] tracking-[-0.03em] mb-6" style="font-size:clamp(2.5rem,6vw,4.5rem)">
         Illuminate Your<br/>
         Enterprise with<br/>
         <span class="gradient-text">Generative AI</span>
       </h1>
-      <p class="hero__sub">
+      <p class="text-[#9896b8] max-w-[580px] leading-[1.7] mb-10" style="font-size:clamp(1rem,2vw,1.2rem)">
         Stack Lume builds the AI infrastructure that Fortune 500 companies trust—
         from autonomous agent orchestration to compliance-ready voice AI—
         so you can focus on what matters most.
       </p>
-      <div class="hero__cta">
-        <a href="https://demo.stacklume.cloud" class="btn btn--primary btn--lg">
+      <div class="flex gap-3.5 flex-wrap mb-16">
+        <a href="https://demo.stacklume.cloud" class="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-lg shadow-violet-900/30 hover:shadow-violet-900/50 hover:-translate-y-0.5 transition-all duration-200">
           Try Free Demo
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+          <i class="bi bi-arrow-right"></i>
         </a>
-        <a href="#products" class="btn btn--ghost btn--lg">Explore Products</a>
+        <a href="#products" class="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-[#9896b8] border border-white/[0.08] hover:text-[#f1f0ff] hover:border-white/20 hover:bg-white/[0.04] transition-all duration-200">Explore Products</a>
       </div>
-      <div class="hero__stats">
-        <div class="stat">
-          <span class="stat__num">10M+</span>
-          <span class="stat__label">API calls/day</span>
+      <div class="flex items-center gap-7 flex-wrap">
+        <div class="flex flex-col gap-0.5">
+          <span class="font-display text-[1.6rem] font-bold tracking-[-0.02em]">10M+</span>
+          <span class="text-[0.8rem] text-[#9896b8]">API calls/day</span>
         </div>
-        <div class="stat__divider" aria-hidden="true"></div>
-        <div class="stat">
-          <span class="stat__num">340+</span>
-          <span class="stat__label">Enterprise clients</span>
+        <div class="w-px h-10 bg-white/[0.08]" aria-hidden="true"></div>
+        <div class="flex flex-col gap-0.5">
+          <span class="font-display text-[1.6rem] font-bold tracking-[-0.02em]">340+</span>
+          <span class="text-[0.8rem] text-[#9896b8]">Enterprise clients</span>
         </div>
-        <div class="stat__divider" aria-hidden="true"></div>
-        <div class="stat">
-          <span class="stat__num">99.99%</span>
-          <span class="stat__label">Uptime SLA</span>
+        <div class="w-px h-10 bg-white/[0.08]" aria-hidden="true"></div>
+        <div class="flex flex-col gap-0.5">
+          <span class="font-display text-[1.6rem] font-bold tracking-[-0.02em]">99.99%</span>
+          <span class="text-[0.8rem] text-[#9896b8]">Uptime SLA</span>
         </div>
-        <div class="stat__divider" aria-hidden="true"></div>
-        <div class="stat">
-          <span class="stat__num">SOC 2</span>
-          <span class="stat__label">Type II Certified</span>
+        <div class="w-px h-10 bg-white/[0.08]" aria-hidden="true"></div>
+        <div class="flex flex-col gap-0.5">
+          <span class="font-display text-[1.6rem] font-bold tracking-[-0.02em]">SOC 2</span>
+          <span class="text-[0.8rem] text-[#9896b8]">Type II Certified</span>
         </div>
       </div>
     </div>
-    <div class="hero__scroll-indicator" aria-hidden="true">
-      <div class="scroll-dot"></div>
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex justify-center" aria-hidden="true">
+      <div class="w-1.5 h-1.5 rounded-full bg-[#4e4c6a] animate-scroll-dot"></div>
     </div>
   </section>
 
   <!-- ─── TICKER ─── -->
-  <div class="ticker" aria-hidden="true">
-    <div class="ticker__track">
-      <span>LumeCore</span><span class="ticker__sep">✦</span>
-      <span>SynthAgent</span><span class="ticker__sep">✦</span>
-      <span>NarrativeGuard</span><span class="ticker__sep">✦</span>
-      <span>ComplianceWeave</span><span class="ticker__sep">✦</span>
-      <span>MemoryStack</span><span class="ticker__sep">✦</span>
-      <span>TrustWeave</span><span class="ticker__sep">✦</span>
-      <span>EchoSynth</span><span class="ticker__sep">✦</span>
-      <span>LumeOps</span><span class="ticker__sep">✦</span>
-      <span>VoiceLume</span><span class="ticker__sep">✦</span>
-      <span>ContextBridge</span><span class="ticker__sep">✦</span>
-      <!-- duplicate for seamless loop -->
-      <span>LumeCore</span><span class="ticker__sep">✦</span>
-      <span>SynthAgent</span><span class="ticker__sep">✦</span>
-      <span>NarrativeGuard</span><span class="ticker__sep">✦</span>
-      <span>ComplianceWeave</span><span class="ticker__sep">✦</span>
-      <span>MemoryStack</span><span class="ticker__sep">✦</span>
-      <span>TrustWeave</span><span class="ticker__sep">✦</span>
-      <span>EchoSynth</span><span class="ticker__sep">✦</span>
-      <span>LumeOps</span><span class="ticker__sep">✦</span>
-      <span>VoiceLume</span><span class="ticker__sep">✦</span>
-      <span>ContextBridge</span><span class="ticker__sep">✦</span>
+  <div class="overflow-hidden bg-violet-600/[0.08] border-y border-white/[0.08] py-3" aria-hidden="true">
+    <div class="animate-ticker flex gap-8 w-max text-[0.85rem] font-medium text-[#9896b8] tracking-[0.05em] uppercase">
+      <span>LumeCore</span><span class="text-violet-400">✦</span>
+      <span>SynthAgent</span><span class="text-violet-400">✦</span>
+      <span>NarrativeGuard</span><span class="text-violet-400">✦</span>
+      <span>ComplianceWeave</span><span class="text-violet-400">✦</span>
+      <span>MemoryStack</span><span class="text-violet-400">✦</span>
+      <span>TrustWeave</span><span class="text-violet-400">✦</span>
+      <span>EchoSynth</span><span class="text-violet-400">✦</span>
+      <span>LumeOps</span><span class="text-violet-400">✦</span>
+      <span>VoiceLume</span><span class="text-violet-400">✦</span>
+      <span>ContextBridge</span><span class="text-violet-400">✦</span>
+      <span>LumeCore</span><span class="text-violet-400">✦</span>
+      <span>SynthAgent</span><span class="text-violet-400">✦</span>
+      <span>NarrativeGuard</span><span class="text-violet-400">✦</span>
+      <span>ComplianceWeave</span><span class="text-violet-400">✦</span>
+      <span>MemoryStack</span><span class="text-violet-400">✦</span>
+      <span>TrustWeave</span><span class="text-violet-400">✦</span>
+      <span>EchoSynth</span><span class="text-violet-400">✦</span>
+      <span>LumeOps</span><span class="text-violet-400">✦</span>
+      <span>VoiceLume</span><span class="text-violet-400">✦</span>
+      <span>ContextBridge</span><span class="text-violet-400">✦</span>
     </div>
   </div>
 
   <!-- ─── PRODUCTS ─── -->
-  <section class="section" id="products">
-    <div class="container">
-      <div class="section__header">
-        <span class="section__eyebrow">Product Suite</span>
-        <h2 class="section__title">AI Products Built for <span class="gradient-text">Scale</span></h2>
-        <p class="section__desc">
+  <section class="py-[100px]" id="products">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="text-center max-w-[640px] mx-auto mb-16">
+        <span class="inline-block text-xs font-semibold tracking-[0.12em] uppercase text-violet-400 mb-3">Product Suite</span>
+        <h2 class="font-display text-3xl md:text-4xl font-bold tracking-tight leading-tight mb-4">AI Products Built for <span class="gradient-text">Scale</span></h2>
+        <p class="text-[#9896b8] text-[1.05rem] leading-[1.7]">
           Ten purpose-built AI platforms designed from the ground up for enterprise security,
           compliance, and performance—products no one else has dared to build.
         </p>
       </div>
 
-      <div class="products-grid">
+      <div class="grid grid-cols-1 md:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-5">
 
-        <!-- LumeCore -->
-        <article class="product-card product-card--featured" data-product="lumecore">
-          <div class="product-card__icon">
-            <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
-              <circle cx="20" cy="20" r="18" stroke="url(#g1)" stroke-width="2"/>
-              <path d="M14 20 l4 4 8-8" stroke="url(#g1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <defs><linearGradient id="g1" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs>
-            </svg>
+        <!-- LumeCore (featured) -->
+        <article class="product-card lg:col-span-2 bg-gradient-to-br from-violet-600/[0.07] to-lume-card border border-violet-600/25 rounded-2xl p-7 transition-all duration-200 hover:border-violet-600/40 hover:-translate-y-1 relative overflow-hidden" data-product="lumecore">
+          <div class="mb-4">
+            <i class="bi bi-cpu-fill text-2xl text-violet-400"></i>
           </div>
-          <span class="product-card__tag">Flagship</span>
-          <h3>LumeCore</h3>
-          <p>The AI orchestration engine that chains models, agents, and tools into deterministic enterprise workflows with full audit trails. Unlike generic orchestration tools, LumeCore enforces SLA contracts at each node.</p>
-          <ul class="product-card__features">
-            <li>Multi-model chaining with fallback routing</li>
-            <li>Deterministic replay for debugging</li>
-            <li>Real-time SLA enforcement per workflow node</li>
-            <li>Built-in PII scrubbing pipeline</li>
+          <span class="inline-block text-[0.7rem] font-semibold tracking-[0.1em] uppercase text-violet-400 bg-violet-600/15 border border-violet-600/25 rounded-full px-2.5 py-0.5 mb-2.5">Flagship</span>
+          <h3 class="font-display text-[1.25rem] font-bold mb-2.5 tracking-[-0.01em]">LumeCore</h3>
+          <p class="text-[#9896b8] text-[0.92rem] leading-[1.65] mb-[18px]">The AI orchestration engine that chains models, agents, and tools into deterministic enterprise workflows with full audit trails. Unlike generic orchestration tools, LumeCore enforces SLA contracts at each node.</p>
+          <ul class="list-none mb-[22px] flex flex-col gap-1.5">
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Multi-model chaining with fallback routing</li>
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Deterministic replay for debugging</li>
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Real-time SLA enforcement per workflow node</li>
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Built-in PII scrubbing pipeline</li>
           </ul>
-          <a href="#contact" class="btn btn--primary btn--sm">Request Access</a>
+          <a href="#contact" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-md shadow-violet-900/30 hover:shadow-violet-900/50 hover:-translate-y-0.5 transition-all duration-200">Request Access</a>
         </article>
 
         <!-- SynthAgent -->
-        <article class="product-card" data-product="synthagent">
-          <div class="product-card__icon">
-            <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
-              <rect x="4" y="4" width="32" height="32" rx="8" stroke="url(#g2)" stroke-width="2"/>
-              <path d="M13 20h14M20 13v14" stroke="url(#g2)" stroke-width="2" stroke-linecap="round"/>
-              <defs><linearGradient id="g2" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#06b6d4"/></linearGradient></defs>
-            </svg>
-          </div>
-          <h3>SynthAgent</h3>
-          <p>Autonomous AI agents that write, test, and deploy code changes—with a built-in code-review governance loop that requires human sign-off only on risk-scored diffs above your threshold.</p>
-          <ul class="product-card__features">
-            <li>Risk-scored diff approval workflow</li>
-            <li>Full CI/CD pipeline integration</li>
-            <li>Sandboxed execution environment</li>
+        <article class="product-card bg-lume-card border border-white/[0.08] rounded-2xl p-7 transition-all duration-200 hover:border-violet-600/40 hover:bg-lume-hover hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(124,58,237,0.15)] relative overflow-hidden" data-product="synthagent">
+          <div class="mb-4"><i class="bi bi-code-slash text-2xl text-violet-400"></i></div>
+          <h3 class="font-display text-[1.25rem] font-bold mb-2.5 tracking-[-0.01em]">SynthAgent</h3>
+          <p class="text-[#9896b8] text-[0.92rem] leading-[1.65] mb-[18px]">Autonomous AI agents that write, test, and deploy code changes—with a built-in code-review governance loop that requires human sign-off only on risk-scored diffs above your threshold.</p>
+          <ul class="list-none mb-[22px] flex flex-col gap-1.5">
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Risk-scored diff approval workflow</li>
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Full CI/CD pipeline integration</li>
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Sandboxed execution environment</li>
           </ul>
-          <a href="#contact" class="btn btn--outline btn--sm">Learn More</a>
+          <a href="#contact" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-violet-400 border border-violet-600/40 hover:bg-violet-600/10 hover:border-violet-400 transition-all duration-200">Learn More</a>
         </article>
 
         <!-- NarrativeGuard -->
-        <article class="product-card" data-product="narrativeguard">
-          <div class="product-card__icon">
-            <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
-              <path d="M8 10 h24 M8 18 h16 M8 26 h20" stroke="url(#g3)" stroke-width="2" stroke-linecap="round"/>
-              <circle cx="30" cy="28" r="6" stroke="url(#g3)" stroke-width="2"/>
-              <path d="M28 28 l1.5 1.5 3-3" stroke="url(#g3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              <defs><linearGradient id="g3" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#10b981"/></linearGradient></defs>
-            </svg>
-          </div>
-          <h3>NarrativeGuard</h3>
-          <p>Brand consistency AI that monitors every outbound communication—emails, press releases, social posts, ad copy—and flags or rewrites anything that drifts from your approved brand voice model.</p>
-          <ul class="product-card__features">
-            <li>Real-time Slack &amp; email monitoring</li>
-            <li>Custom brand voice fingerprinting</li>
-            <li>Auto-rewrite suggestions with tone scoring</li>
+        <article class="product-card bg-lume-card border border-white/[0.08] rounded-2xl p-7 transition-all duration-200 hover:border-violet-600/40 hover:bg-lume-hover hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(124,58,237,0.15)] relative overflow-hidden" data-product="narrativeguard">
+          <div class="mb-4"><i class="bi bi-chat-square-text-fill text-2xl text-violet-400"></i></div>
+          <h3 class="font-display text-[1.25rem] font-bold mb-2.5 tracking-[-0.01em]">NarrativeGuard</h3>
+          <p class="text-[#9896b8] text-[0.92rem] leading-[1.65] mb-[18px]">Brand consistency AI that monitors every outbound communication—emails, press releases, social posts, ad copy—and flags or rewrites anything that drifts from your approved brand voice model.</p>
+          <ul class="list-none mb-[22px] flex flex-col gap-1.5">
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Real-time Slack &amp; email monitoring</li>
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Custom brand voice fingerprinting</li>
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Auto-rewrite suggestions with tone scoring</li>
           </ul>
-          <a href="#contact" class="btn btn--outline btn--sm">Learn More</a>
+          <a href="#contact" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-violet-400 border border-violet-600/40 hover:bg-violet-600/10 hover:border-violet-400 transition-all duration-200">Learn More</a>
         </article>
 
         <!-- ComplianceWeave -->
-        <article class="product-card" data-product="complianceweave">
-          <div class="product-card__icon">
-            <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
-              <path d="M20 4 L34 10 v12 c0 8-7 13-14 14 -7-1-14-6-14-14 V10 z" stroke="url(#g4)" stroke-width="2" stroke-linejoin="round"/>
-              <path d="M14 20 l4 4 8-8" stroke="url(#g4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <defs><linearGradient id="g4" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#f59e0b"/></linearGradient></defs>
-            </svg>
-          </div>
-          <h3>ComplianceWeave</h3>
-          <p>AI that automatically transforms content to meet HIPAA, SOC 2, GDPR, and CCPA requirements in real-time, before publishing—not after a costly audit. Supports 47 global regulatory frameworks.</p>
-          <ul class="product-card__features">
-            <li>47 global regulatory frameworks</li>
-            <li>Pre-publish compliance gate</li>
-            <li>Automated evidence packaging for audits</li>
+        <article class="product-card bg-lume-card border border-white/[0.08] rounded-2xl p-7 transition-all duration-200 hover:border-violet-600/40 hover:bg-lume-hover hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(124,58,237,0.15)] relative overflow-hidden" data-product="complianceweave">
+          <div class="mb-4"><i class="bi bi-shield-fill-check text-2xl text-violet-400"></i></div>
+          <h3 class="font-display text-[1.25rem] font-bold mb-2.5 tracking-[-0.01em]">ComplianceWeave</h3>
+          <p class="text-[#9896b8] text-[0.92rem] leading-[1.65] mb-[18px]">AI that automatically transforms content to meet HIPAA, SOC 2, GDPR, and CCPA requirements in real-time, before publishing—not after a costly audit. Supports 47 global regulatory frameworks.</p>
+          <ul class="list-none mb-[22px] flex flex-col gap-1.5">
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">47 global regulatory frameworks</li>
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Pre-publish compliance gate</li>
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Automated evidence packaging for audits</li>
           </ul>
-          <a href="#contact" class="btn btn--outline btn--sm">Learn More</a>
+          <a href="#contact" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-violet-400 border border-violet-600/40 hover:bg-violet-600/10 hover:border-violet-400 transition-all duration-200">Learn More</a>
         </article>
 
         <!-- MemoryStack -->
-        <article class="product-card" data-product="memorystack">
-          <div class="product-card__icon">
-            <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
-              <ellipse cx="20" cy="12" rx="12" ry="5" stroke="url(#g5)" stroke-width="2"/>
-              <path d="M8 12 v8 c0 2.8 5.4 5 12 5 s12-2.2 12-5 v-8" stroke="url(#g5)" stroke-width="2"/>
-              <path d="M8 20 v8 c0 2.8 5.4 5 12 5 s12-2.2 12-5 v-8" stroke="url(#g5)" stroke-width="2"/>
-              <defs><linearGradient id="g5" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#ec4899"/></linearGradient></defs>
-            </svg>
-          </div>
-          <h3>MemoryStack</h3>
-          <p>Long-term contextual memory management for enterprise AI deployments. MemoryStack persists conversation context, user preferences, and task history across sessions—making every AI interaction smarter over time.</p>
-          <ul class="product-card__features">
-            <li>Cross-session semantic memory</li>
-            <li>Differential privacy controls</li>
-            <li>GDPR right-to-forget built in</li>
+        <article class="product-card bg-lume-card border border-white/[0.08] rounded-2xl p-7 transition-all duration-200 hover:border-violet-600/40 hover:bg-lume-hover hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(124,58,237,0.15)] relative overflow-hidden" data-product="memorystack">
+          <div class="mb-4"><i class="bi bi-database-fill text-2xl text-violet-400"></i></div>
+          <h3 class="font-display text-[1.25rem] font-bold mb-2.5 tracking-[-0.01em]">MemoryStack</h3>
+          <p class="text-[#9896b8] text-[0.92rem] leading-[1.65] mb-[18px]">Long-term contextual memory management for enterprise AI deployments. MemoryStack persists conversation context, user preferences, and task history across sessions—making every AI interaction smarter over time.</p>
+          <ul class="list-none mb-[22px] flex flex-col gap-1.5">
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Cross-session semantic memory</li>
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Differential privacy controls</li>
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">GDPR right-to-forget built in</li>
           </ul>
-          <a href="#contact" class="btn btn--outline btn--sm">Learn More</a>
+          <a href="#contact" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-violet-400 border border-violet-600/40 hover:bg-violet-600/10 hover:border-violet-400 transition-all duration-200">Learn More</a>
         </article>
 
         <!-- TrustWeave -->
-        <article class="product-card" data-product="trustweave">
-          <div class="product-card__icon">
-            <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
-              <path d="M6 20 a14 14 0 1 1 28 0 a14 14 0 0 1-28 0" stroke="url(#g6)" stroke-width="2"/>
-              <path d="M20 12 v8 l5 3" stroke="url(#g6)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <circle cx="20" cy="20" r="3" fill="url(#g6)"/>
-              <defs><linearGradient id="g6" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#f43f5e"/></linearGradient></defs>
-            </svg>
-          </div>
-          <h3>TrustWeave</h3>
-          <p>Real-time hallucination detection and fact-verification for enterprise LLM deployments. Every AI output gets a trust score, and low-confidence responses are automatically routed to human reviewers.</p>
-          <ul class="product-card__features">
-            <li>Sub-100ms confidence scoring</li>
-            <li>Automatic human-in-the-loop routing</li>
-            <li>Source citation extraction &amp; linking</li>
+        <article class="product-card bg-lume-card border border-white/[0.08] rounded-2xl p-7 transition-all duration-200 hover:border-violet-600/40 hover:bg-lume-hover hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(124,58,237,0.15)] relative overflow-hidden" data-product="trustweave">
+          <div class="mb-4"><i class="bi bi-patch-check-fill text-2xl text-violet-400"></i></div>
+          <h3 class="font-display text-[1.25rem] font-bold mb-2.5 tracking-[-0.01em]">TrustWeave</h3>
+          <p class="text-[#9896b8] text-[0.92rem] leading-[1.65] mb-[18px]">Real-time hallucination detection and fact-verification for enterprise LLM deployments. Every AI output gets a trust score, and low-confidence responses are automatically routed to human reviewers.</p>
+          <ul class="list-none mb-[22px] flex flex-col gap-1.5">
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Sub-100ms confidence scoring</li>
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Automatic human-in-the-loop routing</li>
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Source citation extraction &amp; linking</li>
           </ul>
-          <a href="#contact" class="btn btn--outline btn--sm">Learn More</a>
+          <a href="#contact" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-violet-400 border border-violet-600/40 hover:bg-violet-600/10 hover:border-violet-400 transition-all duration-200">Learn More</a>
         </article>
 
         <!-- EchoSynth -->
-        <article class="product-card" data-product="ecosynth">
-          <div class="product-card__icon">
-            <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
-              <path d="M8 20 Q14 10 20 20 Q26 30 32 20" stroke="url(#g7)" stroke-width="2" stroke-linecap="round"/>
-              <path d="M4 20 Q10 6 20 20 Q30 34 36 20" stroke="url(#g7)" stroke-width="1.2" stroke-linecap="round" opacity="0.5"/>
-              <defs><linearGradient id="g7" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#0ea5e9"/></linearGradient></defs>
-            </svg>
-          </div>
-          <h3>EchoSynth</h3>
-          <p>Privacy-preserving synthetic training data generation. EchoSynth learns the statistical DNA of your proprietary datasets and generates unlimited synthetic records—so you can train models without exposing real customer data.</p>
-          <ul class="product-card__features">
-            <li>Statistically faithful synthetic records</li>
-            <li>Differential privacy guarantees</li>
-            <li>Multi-modal: text, tabular, image</li>
+        <article class="product-card bg-lume-card border border-white/[0.08] rounded-2xl p-7 transition-all duration-200 hover:border-violet-600/40 hover:bg-lume-hover hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(124,58,237,0.15)] relative overflow-hidden" data-product="ecosynth">
+          <div class="mb-4"><i class="bi bi-soundwave text-2xl text-violet-400"></i></div>
+          <h3 class="font-display text-[1.25rem] font-bold mb-2.5 tracking-[-0.01em]">EchoSynth</h3>
+          <p class="text-[#9896b8] text-[0.92rem] leading-[1.65] mb-[18px]">Privacy-preserving synthetic training data generation. EchoSynth learns the statistical DNA of your proprietary datasets and generates unlimited synthetic records—so you can train models without exposing real customer data.</p>
+          <ul class="list-none mb-[22px] flex flex-col gap-1.5">
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Statistically faithful synthetic records</li>
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Differential privacy guarantees</li>
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Multi-modal: text, tabular, image</li>
           </ul>
-          <a href="#contact" class="btn btn--outline btn--sm">Learn More</a>
+          <a href="#contact" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-violet-400 border border-violet-600/40 hover:bg-violet-600/10 hover:border-violet-400 transition-all duration-200">Learn More</a>
         </article>
 
         <!-- LumeOps -->
-        <article class="product-card" data-product="lumeops">
-          <div class="product-card__icon">
-            <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
-              <rect x="6" y="6" width="12" height="12" rx="3" stroke="url(#g8)" stroke-width="2"/>
-              <rect x="22" y="6" width="12" height="12" rx="3" stroke="url(#g8)" stroke-width="2"/>
-              <rect x="6" y="22" width="12" height="12" rx="3" stroke="url(#g8)" stroke-width="2"/>
-              <rect x="22" y="22" width="12" height="12" rx="3" stroke="url(#g8)" stroke-width="2"/>
-              <defs><linearGradient id="g8" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#14b8a6"/></linearGradient></defs>
-            </svg>
-          </div>
-          <h3>LumeOps</h3>
-          <p>The AI operations platform that automatically detects model drift, triggers retraining pipelines, and rolls back to known-good checkpoints—before your users notice a quality degradation.</p>
-          <ul class="product-card__features">
-            <li>Continuous drift monitoring</li>
-            <li>Auto-triggered retraining pipelines</li>
-            <li>One-click rollback to checkpoint</li>
+        <article class="product-card bg-lume-card border border-white/[0.08] rounded-2xl p-7 transition-all duration-200 hover:border-violet-600/40 hover:bg-lume-hover hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(124,58,237,0.15)] relative overflow-hidden" data-product="lumeops">
+          <div class="mb-4"><i class="bi bi-diagram-3-fill text-2xl text-violet-400"></i></div>
+          <h3 class="font-display text-[1.25rem] font-bold mb-2.5 tracking-[-0.01em]">LumeOps</h3>
+          <p class="text-[#9896b8] text-[0.92rem] leading-[1.65] mb-[18px]">The AI operations platform that automatically detects model drift, triggers retraining pipelines, and rolls back to known-good checkpoints—before your users notice a quality degradation.</p>
+          <ul class="list-none mb-[22px] flex flex-col gap-1.5">
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Continuous drift monitoring</li>
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Auto-triggered retraining pipelines</li>
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">One-click rollback to checkpoint</li>
           </ul>
-          <a href="#contact" class="btn btn--outline btn--sm">Learn More</a>
+          <a href="#contact" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-violet-400 border border-violet-600/40 hover:bg-violet-600/10 hover:border-violet-400 transition-all duration-200">Learn More</a>
         </article>
 
         <!-- VoiceLume -->
-        <article class="product-card" data-product="voicelume">
-          <div class="product-card__icon">
-            <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
-              <rect x="14" y="4" width="12" height="20" rx="6" stroke="url(#g9)" stroke-width="2"/>
-              <path d="M8 22 a12 10 0 0 0 24 0" stroke="url(#g9)" stroke-width="2" stroke-linecap="round"/>
-              <path d="M20 32 v4 M15 36 h10" stroke="url(#g9)" stroke-width="2" stroke-linecap="round"/>
-              <defs><linearGradient id="g9" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs>
-            </svg>
-          </div>
-          <h3>VoiceLume</h3>
-          <p>Enterprise-grade voice AI with compliance-first architecture. Clone brand voices, generate regulated audio disclosures, and build voice experiences that satisfy FINRA, FDA, and FCC requirements out of the box.</p>
-          <ul class="product-card__features">
-            <li>Regulatory disclosure auto-insertion</li>
-            <li>FINRA / FDA / FCC compliance modes</li>
-            <li>Voice clone with consent verification</li>
+        <article class="product-card bg-lume-card border border-white/[0.08] rounded-2xl p-7 transition-all duration-200 hover:border-violet-600/40 hover:bg-lume-hover hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(124,58,237,0.15)] relative overflow-hidden" data-product="voicelume">
+          <div class="mb-4"><i class="bi bi-mic-fill text-2xl text-violet-400"></i></div>
+          <h3 class="font-display text-[1.25rem] font-bold mb-2.5 tracking-[-0.01em]">VoiceLume</h3>
+          <p class="text-[#9896b8] text-[0.92rem] leading-[1.65] mb-[18px]">Enterprise-grade voice AI with compliance-first architecture. Clone brand voices, generate regulated audio disclosures, and build voice experiences that satisfy FINRA, FDA, and FCC requirements out of the box.</p>
+          <ul class="list-none mb-[22px] flex flex-col gap-1.5">
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Regulatory disclosure auto-insertion</li>
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">FINRA / FDA / FCC compliance modes</li>
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Voice clone with consent verification</li>
           </ul>
-          <a href="#contact" class="btn btn--outline btn--sm">Learn More</a>
+          <a href="#contact" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-violet-400 border border-violet-600/40 hover:bg-violet-600/10 hover:border-violet-400 transition-all duration-200">Learn More</a>
         </article>
 
         <!-- ContextBridge -->
-        <article class="product-card" data-product="contextbridge">
-          <div class="product-card__icon">
-            <svg viewBox="0 0 40 40" fill="none" aria-hidden="true">
-              <circle cx="10" cy="20" r="6" stroke="url(#g10)" stroke-width="2"/>
-              <circle cx="30" cy="20" r="6" stroke="url(#g10)" stroke-width="2"/>
-              <path d="M16 20 h8" stroke="url(#g10)" stroke-width="2" stroke-linecap="round"/>
-              <path d="M20 16 l4 4 -4 4" stroke="url(#g10)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              <defs><linearGradient id="g10" x1="0" y1="0" x2="40" y2="40"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#3b82f6"/></linearGradient></defs>
-            </svg>
-          </div>
-          <h3>ContextBridge</h3>
-          <p>The semantic translation layer that lets any legacy COBOL, mainframe, or SOAP system speak fluent AI-native JSON. Modernize your enterprise APIs without a costly rewrite—ContextBridge handles the impedance mismatch.</p>
-          <ul class="product-card__features">
-            <li>COBOL / SOAP / EDI → REST/JSON</li>
-            <li>Semantic schema auto-mapping</li>
-            <li>Zero-downtime migration mode</li>
+        <article class="product-card bg-lume-card border border-white/[0.08] rounded-2xl p-7 transition-all duration-200 hover:border-violet-600/40 hover:bg-lume-hover hover:-translate-y-1 hover:shadow-[0_0_60px_rgba(124,58,237,0.15)] relative overflow-hidden" data-product="contextbridge">
+          <div class="mb-4"><i class="bi bi-arrow-left-right text-2xl text-violet-400"></i></div>
+          <h3 class="font-display text-[1.25rem] font-bold mb-2.5 tracking-[-0.01em]">ContextBridge</h3>
+          <p class="text-[#9896b8] text-[0.92rem] leading-[1.65] mb-[18px]">The semantic translation layer that lets any legacy COBOL, mainframe, or SOAP system speak fluent AI-native JSON. Modernize your enterprise APIs without a costly rewrite—ContextBridge handles the impedance mismatch.</p>
+          <ul class="list-none mb-[22px] flex flex-col gap-1.5">
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">COBOL / SOAP / EDI → REST/JSON</li>
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Semantic schema auto-mapping</li>
+            <li class="text-sm text-[#9896b8] pl-4 relative before:absolute before:left-0 before:content-['→'] before:text-violet-400 before:text-xs">Zero-downtime migration mode</li>
           </ul>
-          <a href="#contact" class="btn btn--outline btn--sm">Learn More</a>
+          <a href="#contact" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-violet-400 border border-violet-600/40 hover:bg-violet-600/10 hover:border-violet-400 transition-all duration-200">Learn More</a>
         </article>
 
       </div>
@@ -348,110 +301,110 @@
   </section>
 
   <!-- ─── SOLUTIONS ─── -->
-  <section class="section section--dark" id="solutions">
-    <div class="container">
-      <div class="section__header">
-        <span class="section__eyebrow">Industry Solutions</span>
-        <h2 class="section__title">Built for Every <span class="gradient-text">Enterprise</span></h2>
-        <p class="section__desc">Stack Lume solutions are pre-configured for the regulatory and operational constraints of your industry.</p>
+  <section class="py-[100px] bg-lume-bg2" id="solutions">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="text-center max-w-[640px] mx-auto mb-16">
+        <span class="inline-block text-xs font-semibold tracking-[0.12em] uppercase text-violet-400 mb-3">Industry Solutions</span>
+        <h2 class="font-display text-3xl md:text-4xl font-bold tracking-tight leading-tight mb-4">Built for Every <span class="gradient-text">Enterprise</span></h2>
+        <p class="text-[#9896b8] text-[1.05rem] leading-[1.7]">Stack Lume solutions are pre-configured for the regulatory and operational constraints of your industry.</p>
       </div>
-      <div class="solutions-grid">
-        <div class="solution-card">
-          <div class="solution-card__icon">🏦</div>
-          <h3>Financial Services</h3>
-          <p>Automate compliance reporting, detect anomalies, and deploy AI models that satisfy FINRA, SEC, and OCC oversight requirements.</p>
+      <div class="grid grid-cols-1 md:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-5">
+        <div class="solution-card bg-lume-card border border-white/[0.08] rounded-2xl p-7 hover:border-violet-600/40 hover:-translate-y-0.5 transition-all duration-200">
+          <div class="mb-3.5 block"><i class="bi bi-bank2 text-3xl text-violet-400"></i></div>
+          <h3 class="font-display text-[1.1rem] font-semibold mb-2">Financial Services</h3>
+          <p class="text-[#9896b8] text-[0.9rem] leading-[1.6]">Automate compliance reporting, detect anomalies, and deploy AI models that satisfy FINRA, SEC, and OCC oversight requirements.</p>
         </div>
-        <div class="solution-card">
-          <div class="solution-card__icon">🏥</div>
-          <h3>Healthcare</h3>
-          <p>HIPAA-compliant AI for clinical documentation, drug interaction checking, and patient communication with full audit trails.</p>
+        <div class="solution-card bg-lume-card border border-white/[0.08] rounded-2xl p-7 hover:border-violet-600/40 hover:-translate-y-0.5 transition-all duration-200">
+          <div class="mb-3.5 block"><i class="bi bi-hospital-fill text-3xl text-violet-400"></i></div>
+          <h3 class="font-display text-[1.1rem] font-semibold mb-2">Healthcare</h3>
+          <p class="text-[#9896b8] text-[0.9rem] leading-[1.6]">HIPAA-compliant AI for clinical documentation, drug interaction checking, and patient communication with full audit trails.</p>
         </div>
-        <div class="solution-card">
-          <div class="solution-card__icon">🏭</div>
-          <h3>Manufacturing</h3>
-          <p>Predictive maintenance AI, synthetic defect data generation, and quality assurance automation across complex supply chains.</p>
+        <div class="solution-card bg-lume-card border border-white/[0.08] rounded-2xl p-7 hover:border-violet-600/40 hover:-translate-y-0.5 transition-all duration-200">
+          <div class="mb-3.5 block"><i class="bi bi-gear-fill text-3xl text-violet-400"></i></div>
+          <h3 class="font-display text-[1.1rem] font-semibold mb-2">Manufacturing</h3>
+          <p class="text-[#9896b8] text-[0.9rem] leading-[1.6]">Predictive maintenance AI, synthetic defect data generation, and quality assurance automation across complex supply chains.</p>
         </div>
-        <div class="solution-card">
-          <div class="solution-card__icon">⚖️</div>
-          <h3>Legal &amp; Compliance</h3>
-          <p>Contract analysis, regulatory change monitoring, and AI-assisted due diligence with TrustWeave verification on every output.</p>
+        <div class="solution-card bg-lume-card border border-white/[0.08] rounded-2xl p-7 hover:border-violet-600/40 hover:-translate-y-0.5 transition-all duration-200">
+          <div class="mb-3.5 block"><i class="bi bi-briefcase-fill text-3xl text-violet-400"></i></div>
+          <h3 class="font-display text-[1.1rem] font-semibold mb-2">Legal &amp; Compliance</h3>
+          <p class="text-[#9896b8] text-[0.9rem] leading-[1.6]">Contract analysis, regulatory change monitoring, and AI-assisted due diligence with TrustWeave verification on every output.</p>
         </div>
-        <div class="solution-card">
-          <div class="solution-card__icon">🛡️</div>
-          <h3>Defense &amp; Government</h3>
-          <p>Air-gapped deployment options, FedRAMP-ready infrastructure, and classified data handling with zero-knowledge architectures.</p>
+        <div class="solution-card bg-lume-card border border-white/[0.08] rounded-2xl p-7 hover:border-violet-600/40 hover:-translate-y-0.5 transition-all duration-200">
+          <div class="mb-3.5 block"><i class="bi bi-shield-fill text-3xl text-violet-400"></i></div>
+          <h3 class="font-display text-[1.1rem] font-semibold mb-2">Defense &amp; Government</h3>
+          <p class="text-[#9896b8] text-[0.9rem] leading-[1.6]">Air-gapped deployment options, FedRAMP-ready infrastructure, and classified data handling with zero-knowledge architectures.</p>
         </div>
-        <div class="solution-card">
-          <div class="solution-card__icon">📡</div>
-          <h3>Telecommunications</h3>
-          <p>Network anomaly detection, AI-powered call routing, and synthetic network traffic data for model training without customer exposure.</p>
+        <div class="solution-card bg-lume-card border border-white/[0.08] rounded-2xl p-7 hover:border-violet-600/40 hover:-translate-y-0.5 transition-all duration-200">
+          <div class="mb-3.5 block"><i class="bi bi-broadcast text-3xl text-violet-400"></i></div>
+          <h3 class="font-display text-[1.1rem] font-semibold mb-2">Telecommunications</h3>
+          <p class="text-[#9896b8] text-[0.9rem] leading-[1.6]">Network anomaly detection, AI-powered call routing, and synthetic network traffic data for model training without customer exposure.</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ─── HOW IT WORKS ─── -->
-  <section class="section" id="how">
-    <div class="container">
-      <div class="section__header">
-        <span class="section__eyebrow">Platform Architecture</span>
-        <h2 class="section__title">How <span class="gradient-text">Stack Lume</span> Works</h2>
+  <section class="py-[100px]" id="how">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="text-center max-w-[640px] mx-auto mb-16">
+        <span class="inline-block text-xs font-semibold tracking-[0.12em] uppercase text-violet-400 mb-3">Platform Architecture</span>
+        <h2 class="font-display text-3xl md:text-4xl font-bold tracking-tight leading-tight mb-4">How <span class="gradient-text">Stack Lume</span> Works</h2>
       </div>
-      <div class="how-steps">
-        <div class="how-step">
-          <div class="how-step__num">01</div>
-          <h3>Connect Your Data</h3>
-          <p>Connect existing systems via ContextBridge or native connectors for 200+ enterprise data sources—no ETL pipelines required.</p>
+      <div class="flex items-start gap-4 flex-wrap justify-center">
+        <div class="how-step flex-1 min-w-[220px] max-w-[260px] text-center px-6 py-6">
+          <div class="font-display text-[2.5rem] font-extrabold text-violet-600 opacity-40 mb-3 tracking-[-0.05em]">01</div>
+          <h3 class="font-display font-semibold mb-2.5">Connect Your Data</h3>
+          <p class="text-[#9896b8] text-[0.9rem] leading-[1.6]">Connect existing systems via ContextBridge or native connectors for 200+ enterprise data sources—no ETL pipelines required.</p>
         </div>
-        <div class="how-step__arrow" aria-hidden="true">→</div>
-        <div class="how-step">
-          <div class="how-step__num">02</div>
-          <h3>Orchestrate with LumeCore</h3>
-          <p>Build AI workflows visually or via code. LumeCore handles routing, retries, SLA enforcement, and full observability.</p>
+        <div class="text-2xl text-[#4e4c6a] mt-7 shrink-0" aria-hidden="true">→</div>
+        <div class="how-step flex-1 min-w-[220px] max-w-[260px] text-center px-6 py-6">
+          <div class="font-display text-[2.5rem] font-extrabold text-violet-600 opacity-40 mb-3 tracking-[-0.05em]">02</div>
+          <h3 class="font-display font-semibold mb-2.5">Orchestrate with LumeCore</h3>
+          <p class="text-[#9896b8] text-[0.9rem] leading-[1.6]">Build AI workflows visually or via code. LumeCore handles routing, retries, SLA enforcement, and full observability.</p>
         </div>
-        <div class="how-step__arrow" aria-hidden="true">→</div>
-        <div class="how-step">
-          <div class="how-step__num">03</div>
-          <h3>Deploy &amp; Monitor</h3>
-          <p>LumeOps watches your deployed models 24/7, auto-retrains on drift, and gives you real-time dashboards your CEO can read.</p>
+        <div class="text-2xl text-[#4e4c6a] mt-7 shrink-0" aria-hidden="true">→</div>
+        <div class="how-step flex-1 min-w-[220px] max-w-[260px] text-center px-6 py-6">
+          <div class="font-display text-[2.5rem] font-extrabold text-violet-600 opacity-40 mb-3 tracking-[-0.05em]">03</div>
+          <h3 class="font-display font-semibold mb-2.5">Deploy &amp; Monitor</h3>
+          <p class="text-[#9896b8] text-[0.9rem] leading-[1.6]">LumeOps watches your deployed models 24/7, auto-retrains on drift, and gives you real-time dashboards your CEO can read.</p>
         </div>
-        <div class="how-step__arrow" aria-hidden="true">→</div>
-        <div class="how-step">
-          <div class="how-step__num">04</div>
-          <h3>Trust Every Output</h3>
-          <p>TrustWeave validates each AI output before it reaches users—flagging hallucinations, PII leaks, and compliance violations instantly.</p>
+        <div class="text-2xl text-[#4e4c6a] mt-7 shrink-0" aria-hidden="true">→</div>
+        <div class="how-step flex-1 min-w-[220px] max-w-[260px] text-center px-6 py-6">
+          <div class="font-display text-[2.5rem] font-extrabold text-violet-600 opacity-40 mb-3 tracking-[-0.05em]">04</div>
+          <h3 class="font-display font-semibold mb-2.5">Trust Every Output</h3>
+          <p class="text-[#9896b8] text-[0.9rem] leading-[1.6]">TrustWeave validates each AI output before it reaches users—flagging hallucinations, PII leaks, and compliance violations instantly.</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ─── TESTIMONIALS ─── -->
-  <section class="section section--dark" id="testimonials">
-    <div class="container">
-      <div class="section__header">
-        <span class="section__eyebrow">Customer Stories</span>
-        <h2 class="section__title">Trusted by <span class="gradient-text">Industry Leaders</span></h2>
+  <section class="py-[100px] bg-lume-bg2" id="testimonials">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="text-center max-w-[640px] mx-auto mb-16">
+        <span class="inline-block text-xs font-semibold tracking-[0.12em] uppercase text-violet-400 mb-3">Customer Stories</span>
+        <h2 class="font-display text-3xl md:text-4xl font-bold tracking-tight leading-tight mb-4">Trusted by <span class="gradient-text">Industry Leaders</span></h2>
       </div>
-      <div class="testimonials-grid">
-        <blockquote class="testimonial-card">
-          <p>"LumeCore cut our AI workflow development time from 6 weeks to 3 days. The SLA enforcement feature alone has saved us from three critical outages."</p>
-          <footer>
-            <strong>Sarah K.</strong>
-            <span>CTO, Global Asset Management Firm</span>
+      <div class="grid grid-cols-1 md:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-5">
+        <blockquote class="testimonial-card bg-lume-card border border-white/[0.08] rounded-2xl p-7 flex flex-col gap-5">
+          <p class="text-[#9896b8] text-[0.95rem] leading-[1.7] italic before:content-['"'] before:text-violet-400 before:text-2xl before:leading-none">"LumeCore cut our AI workflow development time from 6 weeks to 3 days. The SLA enforcement feature alone has saved us from three critical outages."</p>
+          <footer class="flex flex-col gap-0.5">
+            <strong class="font-semibold text-[0.9rem]">Sarah K.</strong>
+            <span class="text-[#9896b8] text-[0.8rem]">CTO, Global Asset Management Firm</span>
           </footer>
         </blockquote>
-        <blockquote class="testimonial-card">
-          <p>"ComplianceWeave transformed our regulatory process. We used to spend 40 hours per quarter on manual compliance review. Now it's automated and we get an audit-ready package every week."</p>
-          <footer>
-            <strong>Dr. Marcus L.</strong>
-            <span>Chief Compliance Officer, Regional Health Network</span>
+        <blockquote class="testimonial-card bg-lume-card border border-white/[0.08] rounded-2xl p-7 flex flex-col gap-5">
+          <p class="text-[#9896b8] text-[0.95rem] leading-[1.7] italic before:content-['"'] before:text-violet-400 before:text-2xl before:leading-none">"ComplianceWeave transformed our regulatory process. We used to spend 40 hours per quarter on manual compliance review. Now it's automated and we get an audit-ready package every week."</p>
+          <footer class="flex flex-col gap-0.5">
+            <strong class="font-semibold text-[0.9rem]">Dr. Marcus L.</strong>
+            <span class="text-[#9896b8] text-[0.8rem]">Chief Compliance Officer, Regional Health Network</span>
           </footer>
         </blockquote>
-        <blockquote class="testimonial-card">
-          <p>"EchoSynth solved our training data problem overnight. We now generate 50 million synthetic customer records weekly, accelerating our model iteration by 8x."</p>
-          <footer>
-            <strong>Priya S.</strong>
-            <span>VP of AI Engineering, Fortune 100 Telecom</span>
+        <blockquote class="testimonial-card bg-lume-card border border-white/[0.08] rounded-2xl p-7 flex flex-col gap-5">
+          <p class="text-[#9896b8] text-[0.95rem] leading-[1.7] italic before:content-['"'] before:text-violet-400 before:text-2xl before:leading-none">"EchoSynth solved our training data problem overnight. We now generate 50 million synthetic customer records weekly, accelerating our model iteration by 8x."</p>
+          <footer class="flex flex-col gap-0.5">
+            <strong class="font-semibold text-[0.9rem]">Priya S.</strong>
+            <span class="text-[#9896b8] text-[0.8rem]">VP of AI Engineering, Fortune 100 Telecom</span>
           </footer>
         </blockquote>
       </div>
@@ -459,95 +412,95 @@
   </section>
 
   <!-- ─── ABOUT ─── -->
-  <section class="section" id="about">
-    <div class="container">
-      <div class="about-layout">
-        <div class="about-text">
-          <span class="section__eyebrow">About Stack Lume</span>
-          <h2 class="section__title">We Illuminate the<br/><span class="gradient-text">Path Forward</span></h2>
-          <p>Stack Lume was founded by enterprise AI practitioners who were tired of stitching together 12 different vendors to build a single compliant AI workflow. We built the platform we wished existed—one that treats governance, observability, and compliance as first-class citizens, not afterthoughts.</p>
-          <p>We are a remote-first team of 120+ engineers, AI researchers, and enterprise software veterans spread across 18 countries. Our investors include Sequoia, a16z, and the Enterprise AI Fund.</p>
-          <div class="about-badges">
-            <span class="badge">SOC 2 Type II</span>
-            <span class="badge">ISO 27001</span>
-            <span class="badge">FedRAMP Ready</span>
-            <span class="badge">HIPAA Compliant</span>
-            <span class="badge">GDPR Compliant</span>
+  <section class="py-[100px]" id="about">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div>
+          <span class="inline-block text-xs font-semibold tracking-[0.12em] uppercase text-violet-400 mb-3">About Stack Lume</span>
+          <h2 class="font-display text-3xl md:text-4xl font-bold tracking-tight leading-tight mb-4">We Illuminate the<br/><span class="gradient-text">Path Forward</span></h2>
+          <p class="text-[#9896b8] text-[1rem] leading-[1.7] mb-4">Stack Lume was founded by enterprise AI practitioners who were tired of stitching together 12 different vendors to build a single compliant AI workflow. We built the platform we wished existed—one that treats governance, observability, and compliance as first-class citizens, not afterthoughts.</p>
+          <p class="text-[#9896b8] text-[1rem] leading-[1.7] mb-4">We are a remote-first team of 120+ engineers, AI researchers, and enterprise software veterans spread across 18 countries. Our investors include Sequoia, a16z, and the Enterprise AI Fund.</p>
+          <div class="flex flex-wrap gap-2.5 mt-6">
+            <span class="text-xs font-semibold text-violet-400 bg-violet-600/12 border border-violet-600/20 rounded-full px-3 py-1">SOC 2 Type II</span>
+            <span class="text-xs font-semibold text-violet-400 bg-violet-600/12 border border-violet-600/20 rounded-full px-3 py-1">ISO 27001</span>
+            <span class="text-xs font-semibold text-violet-400 bg-violet-600/12 border border-violet-600/20 rounded-full px-3 py-1">FedRAMP Ready</span>
+            <span class="text-xs font-semibold text-violet-400 bg-violet-600/12 border border-violet-600/20 rounded-full px-3 py-1">HIPAA Compliant</span>
+            <span class="text-xs font-semibold text-violet-400 bg-violet-600/12 border border-violet-600/20 rounded-full px-3 py-1">GDPR Compliant</span>
           </div>
         </div>
-        <div class="about-visual" aria-hidden="true">
-          <div class="about-grid">
-            <div class="about-grid__cell about-grid__cell--lit"></div>
-            <div class="about-grid__cell"></div>
-            <div class="about-grid__cell about-grid__cell--lit"></div>
-            <div class="about-grid__cell about-grid__cell--mid"></div>
-            <div class="about-grid__cell"></div>
-            <div class="about-grid__cell about-grid__cell--mid"></div>
-            <div class="about-grid__cell about-grid__cell--lit"></div>
-            <div class="about-grid__cell about-grid__cell--mid"></div>
-            <div class="about-grid__cell about-grid__cell--lit"></div>
-            <div class="about-grid__cell"></div>
-            <div class="about-grid__cell about-grid__cell--mid"></div>
-            <div class="about-grid__cell"></div>
-            <div class="about-grid__cell"></div>
-            <div class="about-grid__cell about-grid__cell--lit"></div>
-            <div class="about-grid__cell about-grid__cell--mid"></div>
-            <div class="about-grid__cell about-grid__cell--lit"></div>
+        <div class="hidden lg:flex flex-col items-center gap-6" aria-hidden="true">
+          <div class="grid gap-2" style="grid-template-columns:repeat(4,60px);grid-template-rows:repeat(4,60px)">
+            <div class="rounded-[10px] bg-gradient-to-br from-violet-600/30 to-blue-600/20 border border-violet-600/40 animate-cell-lit"></div>
+            <div class="rounded-[10px] bg-lume-card border border-white/[0.08]"></div>
+            <div class="rounded-[10px] bg-gradient-to-br from-violet-600/30 to-blue-600/20 border border-violet-600/40 animate-cell-lit"></div>
+            <div class="rounded-[10px] bg-violet-600/10 border border-violet-600/15 animate-cell-mid"></div>
+            <div class="rounded-[10px] bg-lume-card border border-white/[0.08]"></div>
+            <div class="rounded-[10px] bg-violet-600/10 border border-violet-600/15 animate-cell-mid"></div>
+            <div class="rounded-[10px] bg-gradient-to-br from-violet-600/30 to-blue-600/20 border border-violet-600/40 animate-cell-lit"></div>
+            <div class="rounded-[10px] bg-violet-600/10 border border-violet-600/15 animate-cell-mid"></div>
+            <div class="rounded-[10px] bg-gradient-to-br from-violet-600/30 to-blue-600/20 border border-violet-600/40 animate-cell-lit"></div>
+            <div class="rounded-[10px] bg-lume-card border border-white/[0.08]"></div>
+            <div class="rounded-[10px] bg-violet-600/10 border border-violet-600/15 animate-cell-mid"></div>
+            <div class="rounded-[10px] bg-lume-card border border-white/[0.08]"></div>
+            <div class="rounded-[10px] bg-lume-card border border-white/[0.08]"></div>
+            <div class="rounded-[10px] bg-gradient-to-br from-violet-600/30 to-blue-600/20 border border-violet-600/40 animate-cell-lit"></div>
+            <div class="rounded-[10px] bg-violet-600/10 border border-violet-600/15 animate-cell-mid"></div>
+            <div class="rounded-[10px] bg-gradient-to-br from-violet-600/30 to-blue-600/20 border border-violet-600/40 animate-cell-lit"></div>
           </div>
-          <div class="about-label">Enterprise AI Stack</div>
+          <div class="text-[0.78rem] text-[#4e4c6a] uppercase tracking-[0.1em] font-semibold">Enterprise AI Stack</div>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ─── PRICING CTA ─── -->
-  <section class="section section--cta" id="pricing">
-    <div class="container">
-      <div class="cta-box">
-        <div class="cta-box__glow" aria-hidden="true"></div>
-        <span class="section__eyebrow">Pricing &amp; Plans</span>
-        <h2>Ready to Lume Your Enterprise?</h2>
-        <p>Start with a free 30-day pilot on any product. No credit card required. Full enterprise SLA from day one.</p>
-        <div class="cta-box__actions">
-          <a href="https://demo.stacklume.cloud" class="btn btn--primary btn--lg">Start Free Pilot</a>
-          <a href="#contact" class="btn btn--ghost btn--lg">Talk to Sales</a>
+  <section class="py-[100px] bg-lume-bg" id="pricing">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="relative bg-gradient-to-br from-violet-600/[0.12] to-blue-600/[0.08] border border-violet-600/25 rounded-3xl text-center overflow-hidden" style="padding:72px 48px">
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] pointer-events-none" style="background:radial-gradient(ellipse,rgba(124,58,237,0.15),transparent 70%)" aria-hidden="true"></div>
+        <span class="inline-block text-xs font-semibold tracking-[0.12em] uppercase text-violet-400 mb-4">Pricing &amp; Plans</span>
+        <h2 class="font-display font-bold tracking-[-0.02em] mb-4" style="font-size:clamp(1.8rem,4vw,2.8rem)">Ready to Lume Your Enterprise?</h2>
+        <p class="text-[#9896b8] text-[1.05rem] max-w-[520px] mx-auto mb-8">Start with a free 30-day pilot on any product. No credit card required. Full enterprise SLA from day one.</p>
+        <div class="flex gap-3.5 justify-center flex-wrap mb-5">
+          <a href="https://demo.stacklume.cloud" class="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-lg shadow-violet-900/30 hover:shadow-violet-900/50 hover:-translate-y-0.5 transition-all duration-200">Start Free Pilot</a>
+          <a href="#contact" class="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold text-[#9896b8] border border-white/[0.08] hover:text-[#f1f0ff] hover:border-white/20 hover:bg-white/[0.04] transition-all duration-200">Talk to Sales</a>
         </div>
-        <p class="cta-box__note">Avg. enterprise implementation: 2 weeks. Avg. ROI: 340% in year one.</p>
+        <p class="text-[0.85rem] text-[#4e4c6a]">Avg. enterprise implementation: 2 weeks. Avg. ROI: 340% in year one.</p>
       </div>
     </div>
   </section>
 
   <!-- ─── CONTACT ─── -->
-  <section class="section" id="contact">
-    <div class="container">
-      <div class="section__header">
-        <span class="section__eyebrow">Contact Us</span>
-        <h2 class="section__title">Start Your <span class="gradient-text">AI Journey</span></h2>
-        <p class="section__desc">Tell us about your AI challenges and we'll match you to the right Stack Lume products.</p>
+  <section class="py-[100px]" id="contact">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="text-center max-w-[640px] mx-auto mb-16">
+        <span class="inline-block text-xs font-semibold tracking-[0.12em] uppercase text-violet-400 mb-3">Contact Us</span>
+        <h2 class="font-display text-3xl md:text-4xl font-bold tracking-tight leading-tight mb-4">Start Your <span class="gradient-text">AI Journey</span></h2>
+        <p class="text-[#9896b8] text-[1.05rem] leading-[1.7]">Tell us about your AI challenges and we'll match you to the right Stack Lume products.</p>
       </div>
-      <div class="contact-layout">
-        <form class="contact-form" id="contactForm" novalidate>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="firstName">First Name</label>
-              <input type="text" id="firstName" name="firstName" placeholder="Jane" required />
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-16 items-start">
+        <form class="flex flex-col gap-[18px]" id="contactForm" novalidate>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-[18px]">
+            <div class="flex flex-col gap-2">
+              <label for="firstName" class="text-sm font-medium text-[#9896b8]">First Name</label>
+              <input type="text" id="firstName" name="firstName" placeholder="Jane" required class="w-full bg-lume-card border border-white/[0.08] rounded-lg text-[#f1f0ff] font-sans text-[0.95rem] px-4 py-2.5 outline-none transition-all duration-200 focus:border-violet-600 focus:shadow-[0_0_0_3px_rgba(124,58,237,0.15)] placeholder:text-[#4e4c6a]" />
             </div>
-            <div class="form-group">
-              <label for="lastName">Last Name</label>
-              <input type="text" id="lastName" name="lastName" placeholder="Smith" required />
+            <div class="flex flex-col gap-2">
+              <label for="lastName" class="text-sm font-medium text-[#9896b8]">Last Name</label>
+              <input type="text" id="lastName" name="lastName" placeholder="Smith" required class="w-full bg-lume-card border border-white/[0.08] rounded-lg text-[#f1f0ff] font-sans text-[0.95rem] px-4 py-2.5 outline-none transition-all duration-200 focus:border-violet-600 focus:shadow-[0_0_0_3px_rgba(124,58,237,0.15)] placeholder:text-[#4e4c6a]" />
             </div>
           </div>
-          <div class="form-group">
-            <label for="email">Work Email</label>
-            <input type="email" id="email" name="email" placeholder="jane@company.com" required />
+          <div class="flex flex-col gap-2">
+            <label for="email" class="text-sm font-medium text-[#9896b8]">Work Email</label>
+            <input type="email" id="email" name="email" placeholder="jane@company.com" required class="w-full bg-lume-card border border-white/[0.08] rounded-lg text-[#f1f0ff] font-sans text-[0.95rem] px-4 py-2.5 outline-none transition-all duration-200 focus:border-violet-600 focus:shadow-[0_0_0_3px_rgba(124,58,237,0.15)] placeholder:text-[#4e4c6a]" />
           </div>
-          <div class="form-group">
-            <label for="company">Company</label>
-            <input type="text" id="company" name="company" placeholder="Acme Corporation" required />
+          <div class="flex flex-col gap-2">
+            <label for="company" class="text-sm font-medium text-[#9896b8]">Company</label>
+            <input type="text" id="company" name="company" placeholder="Acme Corporation" required class="w-full bg-lume-card border border-white/[0.08] rounded-lg text-[#f1f0ff] font-sans text-[0.95rem] px-4 py-2.5 outline-none transition-all duration-200 focus:border-violet-600 focus:shadow-[0_0_0_3px_rgba(124,58,237,0.15)] placeholder:text-[#4e4c6a]" />
           </div>
-          <div class="form-group">
-            <label for="interest">Product Interest</label>
-            <select id="interest" name="interest">
+          <div class="flex flex-col gap-2">
+            <label for="interest" class="text-sm font-medium text-[#9896b8]">Product Interest</label>
+            <select id="interest" name="interest" class="w-full bg-lume-card border border-white/[0.08] rounded-lg text-[#f1f0ff] font-sans text-[0.95rem] px-4 py-2.5 outline-none transition-all duration-200 focus:border-violet-600 focus:shadow-[0_0_0_3px_rgba(124,58,237,0.15)] appearance-none cursor-pointer">
               <option value="">Select a product...</option>
               <option>LumeCore — AI Orchestration</option>
               <option>SynthAgent — Autonomous Code AI</option>
@@ -562,39 +515,39 @@
               <option>Full Platform</option>
             </select>
           </div>
-          <div class="form-group">
-            <label for="message">Tell us about your challenge</label>
-            <textarea id="message" name="message" rows="4" placeholder="What AI challenge are you trying to solve?"></textarea>
+          <div class="flex flex-col gap-2">
+            <label for="message" class="text-sm font-medium text-[#9896b8]">Tell us about your challenge</label>
+            <textarea id="message" name="message" rows="4" placeholder="What AI challenge are you trying to solve?" class="w-full bg-lume-card border border-white/[0.08] rounded-lg text-[#f1f0ff] font-sans text-[0.95rem] px-4 py-2.5 outline-none transition-all duration-200 focus:border-violet-600 focus:shadow-[0_0_0_3px_rgba(124,58,237,0.15)] placeholder:text-[#4e4c6a] resize-vertical min-h-[100px]"></textarea>
           </div>
-          <button type="submit" class="btn btn--primary btn--lg btn--full">Send Message</button>
-          <div class="form-success" id="formSuccess" aria-live="polite">
+          <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl font-semibold bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-lg shadow-violet-900/30 hover:shadow-violet-900/50 hover:-translate-y-0.5 transition-all duration-200 cursor-pointer border-0 font-sans">Send Message</button>
+          <div class="form-success hidden text-emerald-400 text-[0.9rem] font-medium px-4 py-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg" id="formSuccess" aria-live="polite">
             ✓ Thanks! A Stack Lume specialist will reach out within 1 business day.
           </div>
         </form>
-        <div class="contact-info">
-          <h3>Get in Touch</h3>
-          <ul class="contact-list">
-            <li>
-              <span class="contact-list__icon">📧</span>
-              <a href="mailto:hello@stacklume.cloud">hello@stacklume.cloud</a>
+        <div>
+          <h3 class="font-display text-[1.4rem] font-bold mb-6">Get in Touch</h3>
+          <ul class="flex flex-col gap-3.5 mb-8 list-none">
+            <li class="flex items-center gap-3">
+              <i class="bi bi-envelope-fill text-violet-400 shrink-0"></i>
+              <a href="mailto:hello@stacklume.cloud" class="text-[#9896b8] text-[0.95rem] hover:text-[#f1f0ff] transition-all duration-200">hello@stacklume.cloud</a>
             </li>
-            <li>
-              <span class="contact-list__icon">🌐</span>
-              <a href="https://stacklume.cloud">stacklume.cloud</a>
+            <li class="flex items-center gap-3">
+              <i class="bi bi-globe text-violet-400 shrink-0"></i>
+              <a href="https://stacklume.cloud" class="text-[#9896b8] text-[0.95rem] hover:text-[#f1f0ff] transition-all duration-200">stacklume.cloud</a>
             </li>
-            <li>
-              <span class="contact-list__icon">🔌</span>
-              <a href="https://api.stacklume.cloud">api.stacklume.cloud</a>
+            <li class="flex items-center gap-3">
+              <i class="bi bi-plug-fill text-violet-400 shrink-0"></i>
+              <a href="https://api.stacklume.cloud" class="text-[#9896b8] text-[0.95rem] hover:text-[#f1f0ff] transition-all duration-200">api.stacklume.cloud</a>
             </li>
-            <li>
-              <span class="contact-list__icon">🎮</span>
-              <a href="https://demo.stacklume.cloud">demo.stacklume.cloud</a>
+            <li class="flex items-center gap-3">
+              <i class="bi bi-display text-violet-400 shrink-0"></i>
+              <a href="https://demo.stacklume.cloud" class="text-[#9896b8] text-[0.95rem] hover:text-[#f1f0ff] transition-all duration-200">demo.stacklume.cloud</a>
             </li>
           </ul>
-          <div class="contact-social">
-            <a href="#" aria-label="LinkedIn" class="social-link">in</a>
-            <a href="#" aria-label="X / Twitter" class="social-link">𝕏</a>
-            <a href="#" aria-label="GitHub" class="social-link">GH</a>
+          <div class="flex gap-2.5">
+            <a href="#" aria-label="LinkedIn" class="flex items-center justify-center w-10 h-10 rounded-lg bg-lume-card border border-white/[0.08] text-[#9896b8] hover:border-violet-600/40 hover:text-[#f1f0ff] transition-all duration-200"><i class="bi bi-linkedin"></i></a>
+            <a href="#" aria-label="X / Twitter" class="flex items-center justify-center w-10 h-10 rounded-lg bg-lume-card border border-white/[0.08] text-[#9896b8] hover:border-violet-600/40 hover:text-[#f1f0ff] transition-all duration-200"><i class="bi bi-twitter-x"></i></a>
+            <a href="#" aria-label="GitHub" class="flex items-center justify-center w-10 h-10 rounded-lg bg-lume-card border border-white/[0.08] text-[#9896b8] hover:border-violet-600/40 hover:text-[#f1f0ff] transition-all duration-200"><i class="bi bi-github"></i></a>
           </div>
         </div>
       </div>
@@ -602,11 +555,11 @@
   </section>
 
   <!-- ─── FOOTER ─── -->
-  <footer class="footer">
-    <div class="container">
-      <div class="footer__top">
-        <div class="footer__brand">
-          <a href="/" class="nav__logo" aria-label="Stack Lume home">
+  <footer class="bg-lume-bg2 border-t border-white/[0.08] pt-16 pb-8">
+    <div class="max-w-[1200px] mx-auto px-6">
+      <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-16 mb-12">
+        <div>
+          <a href="/" class="flex items-center gap-2.5 font-display font-bold text-[1.1rem] tracking-[-0.01em]" aria-label="Stack Lume home">
             <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
               <rect width="32" height="32" rx="8" fill="url(#footerLogoGrad)"/>
               <path d="M8 20 L16 8 L24 20" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
@@ -620,54 +573,54 @@
             </svg>
             <span>Stack Lume</span>
           </a>
-          <p>Illuminating enterprise intelligence through generative AI.</p>
+          <p class="text-[#4e4c6a] text-[0.875rem] leading-[1.6] mt-3.5">Illuminating enterprise intelligence through generative AI.</p>
         </div>
-        <div class="footer__cols">
-          <div class="footer__col">
-            <h4>Products</h4>
-            <ul>
-              <li><a href="#products">LumeCore</a></li>
-              <li><a href="#products">SynthAgent</a></li>
-              <li><a href="#products">NarrativeGuard</a></li>
-              <li><a href="#products">ComplianceWeave</a></li>
-              <li><a href="#products">MemoryStack</a></li>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div>
+            <h4 class="text-[0.8rem] font-semibold tracking-[0.08em] uppercase text-[#9896b8] mb-4">Products</h4>
+            <ul class="flex flex-col gap-2 list-none">
+              <li><a href="#products" class="text-[0.875rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">LumeCore</a></li>
+              <li><a href="#products" class="text-[0.875rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">SynthAgent</a></li>
+              <li><a href="#products" class="text-[0.875rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">NarrativeGuard</a></li>
+              <li><a href="#products" class="text-[0.875rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">ComplianceWeave</a></li>
+              <li><a href="#products" class="text-[0.875rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">MemoryStack</a></li>
             </ul>
           </div>
-          <div class="footer__col">
-            <h4>More Products</h4>
-            <ul>
-              <li><a href="#products">TrustWeave</a></li>
-              <li><a href="#products">EchoSynth</a></li>
-              <li><a href="#products">LumeOps</a></li>
-              <li><a href="#products">VoiceLume</a></li>
-              <li><a href="#products">ContextBridge</a></li>
+          <div>
+            <h4 class="text-[0.8rem] font-semibold tracking-[0.08em] uppercase text-[#9896b8] mb-4">More Products</h4>
+            <ul class="flex flex-col gap-2 list-none">
+              <li><a href="#products" class="text-[0.875rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">TrustWeave</a></li>
+              <li><a href="#products" class="text-[0.875rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">EchoSynth</a></li>
+              <li><a href="#products" class="text-[0.875rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">LumeOps</a></li>
+              <li><a href="#products" class="text-[0.875rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">VoiceLume</a></li>
+              <li><a href="#products" class="text-[0.875rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">ContextBridge</a></li>
             </ul>
           </div>
-          <div class="footer__col">
-            <h4>Company</h4>
-            <ul>
-              <li><a href="#about">About</a></li>
-              <li><a href="#solutions">Solutions</a></li>
-              <li><a href="#contact">Contact</a></li>
-              <li><a href="https://api.stacklume.cloud">API Docs</a></li>
-              <li><a href="https://demo.stacklume.cloud">Live Demo</a></li>
+          <div>
+            <h4 class="text-[0.8rem] font-semibold tracking-[0.08em] uppercase text-[#9896b8] mb-4">Company</h4>
+            <ul class="flex flex-col gap-2 list-none">
+              <li><a href="#about" class="text-[0.875rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">About</a></li>
+              <li><a href="#solutions" class="text-[0.875rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">Solutions</a></li>
+              <li><a href="#contact" class="text-[0.875rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">Contact</a></li>
+              <li><a href="https://api.stacklume.cloud" class="text-[0.875rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">API Docs</a></li>
+              <li><a href="https://demo.stacklume.cloud" class="text-[0.875rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">Live Demo</a></li>
             </ul>
           </div>
-          <div class="footer__col">
-            <h4>Legal</h4>
-            <ul>
-              <li><a href="#">Privacy Policy</a></li>
-              <li><a href="#">Terms of Service</a></li>
-              <li><a href="#">Cookie Policy</a></li>
-              <li><a href="#">Security</a></li>
-              <li><a href="#">Compliance</a></li>
+          <div>
+            <h4 class="text-[0.8rem] font-semibold tracking-[0.08em] uppercase text-[#9896b8] mb-4">Legal</h4>
+            <ul class="flex flex-col gap-2 list-none">
+              <li><a href="#" class="text-[0.875rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">Privacy Policy</a></li>
+              <li><a href="#" class="text-[0.875rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">Terms of Service</a></li>
+              <li><a href="#" class="text-[0.875rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">Cookie Policy</a></li>
+              <li><a href="#" class="text-[0.875rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">Security</a></li>
+              <li><a href="#" class="text-[0.875rem] text-[#4e4c6a] hover:text-[#f1f0ff] transition-all duration-200">Compliance</a></li>
             </ul>
           </div>
         </div>
       </div>
-      <div class="footer__bottom">
-        <p>&copy; 2025 Stack Lume, Inc. All rights reserved.</p>
-        <p>stacklume.cloud</p>
+      <div class="flex flex-col md:flex-row justify-between items-center gap-2 pt-6 border-t border-white/[0.08]">
+        <p class="text-[0.8rem] text-[#4e4c6a]">&copy; 2025 Stack Lume, Inc. All rights reserved.</p>
+        <p class="text-[0.8rem] text-[#4e4c6a]">stacklume.cloud</p>
       </div>
     </div>
   </footer>
