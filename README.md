@@ -1,24 +1,96 @@
-# NGINX Static Host
+# NGINX Static Host + AI Backend (demo.stacklume.cloud)
 
-A simple Docker setup using NGINX to host fast, secure static websites. This repository provides a straightforward and efficient way to serve static content.
+A Docker-based setup for hosting a fast, secure static website with NGINX **and** a fully functional AI backend featuring RAG (Retrieval-Augmented Generation) and document ingestion. All containers are based on Alpine Linux for a minimal footprint.
+
+## Architecture
+
+```
+Browser
+  │
+  ▼
+nginx:alpine  (port 8080)
+  ├── /            → serves static files from public/
+  └── /api/*       → proxies to FastAPI backend
+                          │
+                          ▼
+                   python:3.12-alpine  (port 8000)
+                   FastAPI + LangChain + ChromaDB client
+                          │
+                          ▼
+                   chromadb/chroma  (port 8001)
+                   Vector store (persistent volume)
+```
 
 ## Versions
 
-This repository offers two versions, each catering to different needs:
+This repository offers two versions of the static hosting layer, each catering to different needs:
 
-*   **Version 1.0**: The initial, basic setup for serving a static website with NGINX.
-*   **Version 1.1**: An enhanced version with added security and performance features.
+*   **Version 1.0**: Basic NGINX setup for serving a static website.
+*   **Version 1.1**: Enhanced version with security headers, Gzip compression, asset caching, and an `/api/` reverse-proxy to the AI backend.
 
-The `Dockerfile` and `nginx.conf` for each version are located within their respective version directories in the repository.
+The `Dockerfile` and `nginx.conf` for each version are in `docker/nginx/<version>/`.
 
 ## Features
 
-*   **Lightweight**: Based on the official NGINX Alpine image, keeping the footprint small.
-*   **Secure**: Provides a solid foundation for a secure static site. Version 1.1 includes additional security headers.
-*   **Performant**: Configured for efficient delivery of static assets with caching headers.
-*   **Simple**: Easy to understand and set up, even for those new to Docker or NGINX.
+*   **Lightweight**: Based on `nginx:alpine` and `python:3.12-alpine` — minimal image sizes.
+*   **Secure**: Security headers, non-root container user, HTTPS-ready.
+*   **Performant**: Gzip, long-lived asset caching, streaming proxy.
+*   **RAG-ready**: Ask questions over your own documents via `/api/chat`.
+*   **Multi-source ingestion**: Ingest PDFs, plain text, or web URLs via `/api/ingest/*`.
+*   **Local-first**: One `docker compose up --build` starts everything.
 
-## Setup Instructions
+## Quick Start (Local)
+
+> **Prerequisite:** Docker and Docker Compose installed.
+
+```bash
+# 1. Clone and enter the repo
+git clone https://github.com/OnionSmash/nginx-static-host.git
+cd nginx-static-host
+
+# 2. Configure your OpenAI API key
+cp .env.example .env
+# Edit .env and set OPENAI_API_KEY=sk-...
+
+# 3. Start the full stack
+docker compose up --build
+```
+
+| Service  | URL                              | Purpose                       |
+|----------|----------------------------------|-------------------------------|
+| Frontend | http://localhost:8080            | Static site + AI chat UI      |
+| Backend  | http://localhost:8000/api/docs   | FastAPI docs (Swagger UI)     |
+| ChromaDB | http://localhost:8001            | Vector store (internal use)   |
+
+### Ingest documents
+
+```bash
+# Ingest a PDF
+curl -X POST http://localhost:8000/api/ingest/pdf \
+  -F "file=@/path/to/document.pdf"
+
+# Ingest a URL
+curl -X POST http://localhost:8000/api/ingest/url \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com/docs"}'
+
+# Ingest plain text
+curl -X POST http://localhost:8000/api/ingest/text \
+  -H "Content-Type: application/json" \
+  -d '{"content": "Your text here", "source_name": "my-doc"}'
+```
+
+### Query the RAG endpoint
+
+```bash
+curl -X POST http://localhost:8000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What is Stacklume?"}'
+```
+
+---
+
+## Static-Only Setup Instructions
 
 These instructions will guide you through setting up a static site on a host or server.
 
