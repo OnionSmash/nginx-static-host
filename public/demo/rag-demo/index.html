@@ -699,7 +699,9 @@ function runRagQuery() {
   btn.innerHTML = '<i class="bi bi-arrow-repeat animate-spinner"></i> Running…';
   btn.disabled = true;
 
-  const delay = 900 + Math.floor(crypto.getRandomValues(new Uint32Array(1))[0] % 800);
+  const randBuf = new Uint32Array(1);
+  crypto.getRandomValues(randBuf);
+  const delay = 900 + (randBuf[0] % 800);
 
   setTimeout(() => {
     btn.innerHTML = '<i class="bi bi-play-circle"></i> Run RAG Query';
@@ -1654,6 +1656,8 @@ resource synapseWs 'Microsoft.Synapse/workspaces@2021-06-01' = {
       filesystem: 'curated'
     }
     sqlAdministratorLogin: 'synapseadmin'
+    // WARNING: Replace with a secure parameter reference or Key Vault secret in production.
+    // This placeholder password is for demo purposes only and must not be used in real deployments.
     sqlAdministratorLoginPassword: '\${uniqueString(resourceGroup().id)}Aa1!'
     managedVirtualNetwork: 'default'
     managedResourceGroupName: '\${prefix}-synapse-managed'
