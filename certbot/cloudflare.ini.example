@@ -1,0 +1,12 @@
+# Cloudflare DNS API credentials for certbot wildcard cert
+# See: https://certbot-dns-cloudflare.readthedocs.io/
+#
+# Instructions:
+# 1. Log in to Cloudflare: https://dash.cloudflare.com/profile/api-tokens
+# 2. Create an API Token with the following permissions:
+#      Zone → Zone → Read
+#      Zone → DNS  → Edit
+#    Scoped to: stacklume.cloud
+# 3. Paste the token value below (never commit real credentials!)
+#
+dns_cloudflare_api_token = YOUR_CLOUDFLARE_API_TOKEN_HERE

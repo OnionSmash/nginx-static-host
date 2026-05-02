@@ -1,15 +1,130 @@
-# NGINX Static Host
+# NGINX Static Host — Stack Lume Edition
 
-A simple Docker setup using NGINX to host fast, secure static websites. This repository provides a straightforward and efficient way to serve static content.
+A Docker + NGINX setup for hosting fast, secure static websites. This repository now includes the complete **Stack Lume** Gen AI company website—served across three subdomains with a wildcard Let's Encrypt SSL certificate.
+
+| Domain | Purpose |
+|---|---|
+| `stacklume.cloud` | Main Gen AI company website |
+| `api.stacklume.cloud` | API Developer Hub |
+| `demo.stacklume.cloud` | Interactive product demos |
+
+---
 
 ## Versions
 
-This repository offers two versions, each catering to different needs:
+This repository offers three versions, each catering to different needs:
 
 *   **Version 1.0**: The initial, basic setup for serving a static website with NGINX.
-*   **Version 1.1**: An enhanced version with added security and performance features.
+*   **Version 1.1**: An enhanced version with added security headers, Gzip compression, and cache tuning.
+*   **Version 1.2**: Multi-domain setup for `stacklume.cloud`, `api.stacklume.cloud`, and `demo.stacklume.cloud` with wildcard Let's Encrypt SSL (DNS-01 challenge via Certbot).
 
 The `Dockerfile` and `nginx.conf` for each version are located within their respective version directories in the repository.
+
+---
+
+## Stack Lume — Quick Deploy
+
+### Prerequisites
+
+*   Docker ≥ 24 and Docker Compose v2
+*   A server with ports 80 and 443 open
+*   DNS A records pointing to your server IP:
+    *   `stacklume.cloud`    → `<server-ip>`
+    *   `*.stacklume.cloud`  → `<server-ip>`  *(wildcard A record)*
+*   A Cloudflare API token with DNS edit permissions for `stacklume.cloud`
+
+### 1. Clone and Configure
+
+```bash
+git clone https://github.com/OnionSmash/nginx-static-host.git
+cd nginx-static-host
+
+# Copy the example credentials file and add your Cloudflare API token
+cp certbot/cloudflare.ini.example certbot/cloudflare.ini
+chmod 600 certbot/cloudflare.ini
+# Edit certbot/cloudflare.ini and replace the placeholder token
+```
+
+### 2. Obtain the Wildcard SSL Certificate
+
+The wildcard certificate covers **both** `stacklume.cloud` and `*.stacklume.cloud` (which includes `api.stacklume.cloud` and `demo.stacklume.cloud`):
+
+```bash
+docker compose run --rm certbot
+```
+
+Certbot will use the DNS-01 challenge to verify ownership and write the certificate to the `certbot-certs` Docker volume.
+
+### 3. Start NGINX
+
+```bash
+docker compose up -d nginx certbot-renewer
+```
+
+The `certbot-renewer` service automatically renews the certificate every 12 hours when it is within 30 days of expiry.
+
+### 4. Verify
+
+```bash
+# Check NGINX is running
+docker compose ps
+
+# Test HTTPS for all three domains
+curl -I https://stacklume.cloud
+curl -I https://api.stacklume.cloud
+curl -I https://demo.stacklume.cloud
+```
+
+### Certificate Renewal
+
+Certbot automatically handles renewal. To force a manual renewal:
+
+```bash
+docker compose run --rm certbot-renewer
+docker compose exec nginx nginx -s reload
+```
+
+---
+
+## Wildcard SSL — How It Works
+
+Let's Encrypt issues wildcard certificates only via the **DNS-01 challenge**, which proves domain ownership by writing a temporary TXT record to your DNS zone. This repository uses the **Certbot Cloudflare DNS plugin** (`certbot/dns-cloudflare`).
+
+If your DNS is managed by a different provider, swap the plugin:
+
+| DNS Provider | Plugin image / package |
+|---|---|
+| Cloudflare | `certbot/dns-cloudflare` |
+| AWS Route 53 | `certbot/dns-route53` |
+| Google Cloud DNS | `certbot/dns-google` |
+| DigitalOcean | `certbot/dns-digitalocean` |
+| Namecheap / other | `certbot/certbot` + manual DNS |
+
+Update the `certbot` and `certbot-renewer` service images in `docker-compose.yml` and the `--dns-*` flags accordingly.
+
+---
+
+## Using a Different DNS Provider (Route 53 Example)
+
+```yaml
+# docker-compose.yml — certbot service override for AWS Route 53
+certbot:
+  image: certbot/dns-route53:latest
+  command: >
+    certonly
+    --dns-route53
+    --email hello@stacklume.cloud
+    --agree-tos
+    --no-eff-email
+    -d stacklume.cloud
+    -d "*.stacklume.cloud"
+  environment:
+    - AWS_ACCESS_KEY_ID=YOUR_KEY
+    - AWS_SECRET_ACCESS_KEY=YOUR_SECRET
+```
+
+---
+
 
 ## Features
 

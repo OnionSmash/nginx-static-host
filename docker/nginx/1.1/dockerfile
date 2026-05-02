@@ -1,0 +1,13 @@
+# Dockerfile — Version 1.1 (Secure & Performant)
+FROM nginx:alpine
+
+# Copy site into the NGINX webroot
+COPY public/ /usr/share/nginx/html
+
+# Drop in the enhanced nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port 80 (TLS termination handled upstream by Certbot/reverse proxy)
+EXPOSE 80
+
+# Inherit default CMD: nginx -g "daemon off;"

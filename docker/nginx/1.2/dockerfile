@@ -1,0 +1,22 @@
+# Dockerfile — Version 1.2 (Multi-domain + Wildcard SSL via Certbot)
+FROM nginx:alpine
+
+# Install certbot with the DNS Cloudflare plugin for wildcard cert support
+# (Swap the plugin for your DNS provider: certbot-dns-route53, certbot-dns-google, etc.)
+RUN apk add --no-cache python3 py3-pip certbot \
+    && pip3 install --no-cache-dir certbot-nginx certbot-dns-cloudflare --break-system-packages
+
+# Copy site files
+COPY public/ /usr/share/nginx/html
+
+# Copy nginx virtual-host configs
+COPY nginx.conf      /etc/nginx/conf.d/default.conf
+COPY nginx-api.conf  /etc/nginx/conf.d/api.conf
+COPY nginx-demo.conf /etc/nginx/conf.d/demo.conf
+
+# Certbot webroot challenge directory (used before SSL is provisioned)
+RUN mkdir -p /var/www/certbot /etc/letsencrypt /var/lib/letsencrypt
+
+EXPOSE 80 443
+
+CMD ["nginx", "-g", "daemon off;"]

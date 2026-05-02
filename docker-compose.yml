@@ -1,0 +1,82 @@
+services:
+
+  # ── NGINX — serves all three domains ──────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: stacklume-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Site files
+      - ./public:/usr/share/nginx/html:ro
+      # Virtual-host configs
+      - ./docker/nginx/1.2/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./docker/nginx/1.2/nginx-api.conf:/etc/nginx/conf.d/api.conf:ro
+      - ./docker/nginx/1.2/nginx-demo.conf:/etc/nginx/conf.d/demo.conf:ro
+      # Certificates (populated by certbot service)
+      - certbot-certs:/etc/letsencrypt:ro
+      # ACME webroot challenge directory
+      - certbot-webroot:/var/www/certbot:ro
+    depends_on:
+      - certbot
+    networks:
+      - web
+
+  # ── CERTBOT — obtains & renews *.stacklume.cloud wildcard cert ────────────
+  #
+  # Wildcard certificates REQUIRE a DNS-01 challenge. The command below uses
+  # the Cloudflare DNS plugin. Swap the plugin name and credentials file if
+  # your DNS is managed elsewhere (e.g. --dns-route53, --dns-google, etc.).
+  #
+  # Setup steps before first run:
+  #   1. Add your DNS provider API credentials to ./certbot/cloudflare.ini
+  #      (see certbot/cloudflare.ini.example for format)
+  #   2. Run:  docker compose run --rm certbot certonly
+  #   3. Restart nginx:  docker compose restart nginx
+  #
+  certbot:
+    image: certbot/dns-cloudflare:latest
+    container_name: stacklume-certbot
+    restart: unless-stopped
+    volumes:
+      - certbot-certs:/etc/letsencrypt
+      - certbot-webroot:/var/www/certbot
+      - ./certbot:/etc/certbot:ro
+    # Obtain wildcard cert on first run; --keep-until-expiring skips re-issue
+    # if the cert is still valid. Use `docker compose run certbot renew` for renewal.
+    command: >
+      certonly
+      --dns-cloudflare
+      --dns-cloudflare-credentials /etc/certbot/cloudflare.ini
+      --dns-cloudflare-propagation-seconds 60
+      --email hello@stacklume.cloud
+      --agree-tos
+      --no-eff-email
+      --keep-until-expiring
+      -d stacklume.cloud
+      -d "*.stacklume.cloud"
+    networks:
+      - web
+
+  # ── CERTBOT RENEWER — auto-renew every 12 hours ───────────────────────────
+  certbot-renewer:
+    image: certbot/dns-cloudflare:latest
+    container_name: stacklume-certbot-renewer
+    restart: unless-stopped
+    volumes:
+      - certbot-certs:/etc/letsencrypt
+      - certbot-webroot:/var/www/certbot
+      - ./certbot:/etc/certbot:ro
+    entrypoint: /bin/sh -c "trap exit TERM; while :; do certbot renew --dns-cloudflare --dns-cloudflare-credentials /etc/certbot/cloudflare.ini --dns-cloudflare-propagation-seconds 60 --quiet; sleep 43200 & wait $${!}; done"
+    networks:
+      - web
+
+volumes:
+  certbot-certs:
+  certbot-webroot:
+
+networks:
+  web:
+    driver: bridge
