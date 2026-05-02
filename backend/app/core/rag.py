@@ -4,9 +4,9 @@ from functools import lru_cache
 
 import chromadb
 from langchain_chroma import Chroma
+from langchain_core.documents import Document
+from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from langchain.chains import RetrievalQA
-from langchain.prompts import PromptTemplate
 
 from app.core.config import get_settings
 
@@ -42,35 +42,31 @@ def get_vector_store() -> Chroma:
     )
 
 
-def build_rag_chain() -> RetrievalQA:
+def query_rag(question: str) -> dict:
+    """Run a RAG query and return answer + source metadata."""
     cfg = get_settings()
+
+    retriever = get_vector_store().as_retriever(
+        search_type="similarity",
+        search_kwargs={"k": cfg.retrieval_k},
+    )
+    docs: list[Document] = retriever.invoke(question)
+
+    context = "\n\n".join(doc.page_content for doc in docs)
+    prompt_text = _SYSTEM_PROMPT.format(context=context, question=question)
+
     llm = ChatOpenAI(
         model=cfg.openai_chat_model,
         openai_api_key=cfg.openai_api_key,
         temperature=0,
     )
-    retriever = get_vector_store().as_retriever(
-        search_type="similarity",
-        search_kwargs={"k": cfg.retrieval_k},
-    )
-    return RetrievalQA.from_chain_type(
-        llm=llm,
-        chain_type="stuff",
-        retriever=retriever,
-        return_source_documents=True,
-        chain_type_kwargs={"prompt": _SYSTEM_PROMPT},
-    )
+    response = llm.invoke(prompt_text)
 
-
-def query_rag(question: str) -> dict:
-    """Run a RAG query and return answer + source metadata."""
-    chain = build_rag_chain()
-    result = chain.invoke({"query": question})
     sources = [
         {
             "source": doc.metadata.get("source", "unknown"),
             "page": doc.metadata.get("page"),
         }
-        for doc in result.get("source_documents", [])
+        for doc in docs
     ]
-    return {"answer": result["result"], "sources": sources}
+    return {"answer": response.content, "sources": sources}

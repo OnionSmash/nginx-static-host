@@ -8,8 +8,9 @@ from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_core.documents import Document
 from langchain_community.document_loaders import PyPDFLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from app.core.config import get_settings
 from app.core.rag import get_vector_store
@@ -45,8 +46,6 @@ def _validate_url(url: str) -> None:
 
 def ingest_text(content: str, source_name: str = "manual") -> int:
     """Ingest a plain-text string. Returns number of chunks stored."""
-    from langchain.schema import Document
-
     splitter = _splitter()
     docs = splitter.create_documents([content], metadatas=[{"source": source_name}])
     store = get_vector_store()
