@@ -1,0 +1,2151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stack Lume — RAG + IaC Explorer (Private Demo)</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            lume: { bg: '#0a0a0f', bg2: '#0f0f1a', card: '#12121e', hover: '#17172a' }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['Space Grotesk', 'Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    /* ── RAG demo specific styles ── */
+    .drop-zone { border: 2px dashed rgba(124,58,237,0.35); transition: border-color 0.2s, background 0.2s; }
+    .drop-zone.drag-over { border-color: #a78bfa; background: rgba(124,58,237,0.08); }
+    .chunk-text { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .chunk-text.expanded { display: block; -webkit-line-clamp: unset; overflow: visible; }
+    .iac-line-wrap { counter-reset: line; }
+    .iac-line { display: flex; counter-increment: line; }
+    .iac-line::before { content: counter(line); min-width: 2.5rem; text-align: right; padding-right: 1rem; color: #4e4c6a; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; user-select: none; flex-shrink: 0; padding-top: 1px; }
+    .iac-line code { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; white-space: pre; color: #c9c7e8; flex: 1; }
+    /* syntax highlight token colours */
+    .t-kw  { color: #c084fc; }  /* keyword/type  – violet */
+    .t-str { color: #86efac; }  /* string        – green */
+    .t-num { color: #fbbf24; }  /* number        – amber */
+    .t-cmt { color: #4e4c6a; font-style: italic; } /* comment – muted */
+    .t-fn  { color: #60a5fa; }  /* function/key  – blue */
+    .t-op  { color: #e879f9; }  /* operator/punct – fuchsia */
+    .t-lbl { color: #f1f0ff; }  /* plain label   – white */
+    /* arch diagram */
+    .arch-node { border: 1px solid rgba(255,255,255,0.1); transition: border-color 0.2s, transform 0.2s; }
+    .arch-node:hover { border-color: #a78bfa; transform: translateY(-2px); }
+    .arch-arrow { width: 2px; margin: 0 auto; background: linear-gradient(to bottom, rgba(124,58,237,0.6), rgba(37,99,235,0.4)); position: relative; }
+    .arch-arrow::after { content: ''; position: absolute; bottom: -1px; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: rgba(37,99,235,0.5); }
+    .arch-arrow-h { height: 2px; background: linear-gradient(to right, rgba(124,58,237,0.6), rgba(37,99,235,0.4)); }
+    .tab-btn { transition: all 0.2s; }
+    .tab-btn.active { background: rgba(124,58,237,0.15); border-color: rgba(124,58,237,0.7); color: #f1f0ff; }
+    .cloud-btn { transition: all 0.15s; }
+    .cloud-btn.active { background: rgba(124,58,237,0.15); border-color: #7c3aed; color: #f1f0ff; }
+    .iac-format-btn { transition: all 0.15s; }
+    .iac-format-btn.active { background: rgba(96,165,250,0.15); border-color: #60a5fa; color: #f1f0ff; }
+    .scenario-chip { cursor: pointer; transition: all 0.15s; }
+    .scenario-chip:hover { border-color: rgba(124,58,237,0.6); background: rgba(124,58,237,0.08); color: #f1f0ff; }
+    .copy-flash { animation: copyFlash 0.6s ease; }
+    @keyframes copyFlash { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  </style>
+</head>
+<body class="bg-lume-bg text-[#f1f0ff] font-sans antialiased leading-relaxed min-h-screen flex flex-col">
+
+<!-- ─── NAV ─── -->
+<nav class="sticky top-0 z-50 bg-lume-bg/90 backdrop-blur-lg border-b border-white/[0.08]">
+  <div class="max-w-[1200px] mx-auto px-6 flex items-center justify-between h-[64px] gap-4 flex-wrap">
+    <!-- Logo + title -->
+    <div class="flex items-center gap-3 min-w-0">
+      <a href="https://stacklume.cloud" class="flex items-center gap-2 font-display font-bold text-[1rem] shrink-0">
+        <svg width="26" height="26" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+          <rect width="32" height="32" rx="8" fill="url(#ragLogoGrad)"/>
+          <path d="M8 20 L16 8 L24 20" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <path d="M11 24 h10" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <defs><linearGradient id="ragLogoGrad" x1="0" y1="0" x2="32" y2="32"><stop stop-color="#7c3aed"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs>
+        </svg>
+        Stack Lume
+      </a>
+      <span class="text-[#4e4c6a] hidden sm:inline">/</span>
+      <span class="font-display font-semibold text-[0.95rem] text-[#f1f0ff] hidden sm:inline">RAG + IaC Explorer</span>
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[0.7rem] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0">
+        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-badge-dot"></span>Private Demo
+      </span>
+    </div>
+    <!-- Nav links -->
+    <div class="flex items-center gap-2 shrink-0">
+      <a href="../index.html" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm text-[#9896b8] border border-white/[0.08] hover:border-violet-600/40 hover:text-[#f1f0ff] transition-all duration-200">
+        <i class="bi bi-arrow-left text-xs"></i> Main Demo
+      </a>
+      <a href="https://api.stacklume.cloud" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm text-violet-400 border border-violet-600/40 hover:bg-violet-600/10 hover:border-violet-400 transition-all duration-200">API Docs</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── HERO ─── -->
+<div class="border-b border-white/[0.08] py-10 text-center">
+  <div class="max-w-[1200px] mx-auto px-6">
+    <div class="text-[0.72rem] font-semibold tracking-[0.12em] uppercase text-violet-400 mb-2">Private Demo · Internal Access Only</div>
+    <h1 class="font-display font-extrabold tracking-[-0.02em] mb-2" style="font-size:clamp(1.6rem,4vw,2.4rem)">
+      <span class="gradient-text">RAG + IaC</span> Explorer
+    </h1>
+    <p class="text-[#9896b8] text-[0.9rem] max-w-[520px] mx-auto">
+      Retrieval-augmented generation on your own documents, plus instant IaC scaffolding for cloud architectures — all in your browser.
+    </p>
+  </div>
+</div>
+
+<!-- ─── MAIN TABS ─── -->
+<div class="max-w-[1200px] mx-auto px-6 pt-8 flex-1 w-full">
+
+  <!-- Tab buttons -->
+  <div class="flex gap-2 mb-8 flex-wrap">
+    <button id="tab-rag-btn" class="tab-btn inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-lume-card border border-white/[0.08] text-sm font-medium text-[#9896b8] active" onclick="switchTab('rag')">
+      <i class="bi bi-search text-violet-400"></i> RAG File Explorer
+    </button>
+    <button id="tab-iac-btn" class="tab-btn inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-lume-card border border-white/[0.08] text-sm font-medium text-[#9896b8]" onclick="switchTab('iac')">
+      <i class="bi bi-diagram-3 text-blue-400"></i> IaC Structure Mapper
+    </button>
+  </div>
+
+  <!-- ═══ TAB 1: RAG FILE EXPLORER ═══ -->
+  <div id="panel-rag">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start pb-16">
+
+      <!-- LEFT: Upload & Query -->
+      <div class="flex flex-col gap-4">
+
+        <!-- Drop zone -->
+        <div class="bg-lume-card border border-white/[0.08] rounded-2xl p-6">
+          <h3 class="font-display text-[1rem] font-semibold mb-1 flex items-center gap-2">
+            <i class="bi bi-cloud-upload text-violet-400"></i> Document Upload
+          </h3>
+          <p class="text-[#9896b8] text-[0.82rem] mb-4">Upload a file to index it for RAG retrieval. Supported: <code class="font-mono text-[0.78rem] text-violet-300">.txt .md .json .yaml .tf .bicep .cfn .pdf</code></p>
+
+          <div id="drop-zone" class="drop-zone rounded-xl p-8 text-center cursor-pointer relative"
+               onclick="document.getElementById('file-input').click()"
+               ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+            <input type="file" id="file-input" class="hidden"
+                   accept=".txt,.pdf,.yaml,.yml,.json,.md,.tf,.bicep,.cfn"
+                   onchange="handleFileSelect(this.files[0])" />
+            <div id="drop-idle">
+              <i class="bi bi-file-earmark-arrow-up text-3xl text-violet-400/60 mb-3 block"></i>
+              <p class="text-[#9896b8] text-sm">Drop a file here or <span class="text-violet-400 font-medium">click to browse</span></p>
+              <p class="text-[#4e4c6a] text-[0.75rem] mt-1">Max 5 MB</p>
+            </div>
+            <div id="drop-file" class="hidden items-center gap-3">
+              <i id="file-icon" class="bi bi-file-earmark-text text-2xl text-violet-400"></i>
+              <div class="text-left min-w-0">
+                <p id="file-name" class="text-[0.88rem] font-medium text-[#f1f0ff] truncate"></p>
+                <p id="file-meta" class="text-[0.75rem] text-[#9896b8]"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Indexing status -->
+          <div id="index-status" class="hidden mt-3 flex items-center gap-2 text-[0.82rem]">
+            <span id="index-spinner" class="hidden"><i class="bi bi-arrow-repeat animate-spinner text-violet-400"></i></span>
+            <span id="index-text" class="text-[#9896b8]"></span>
+          </div>
+        </div>
+
+        <!-- Query -->
+        <div class="bg-lume-card border border-white/[0.08] rounded-2xl p-6">
+          <h3 class="font-display text-[1rem] font-semibold mb-1 flex items-center gap-2">
+            <i class="bi bi-chat-dots text-blue-400"></i> RAG Query
+          </h3>
+          <p class="text-[#9896b8] text-[0.82rem] mb-4">Ask a question. The engine retrieves relevant chunks, then synthesises an answer.</p>
+
+          <label class="block text-[0.82rem] font-medium text-[#9896b8] mb-1.5">Question</label>
+          <textarea id="rag-question" rows="4"
+            placeholder="Ask a question about the uploaded document…"
+            class="bg-lume-bg border border-white/[0.08] rounded-lg text-[#f1f0ff] font-sans text-[0.9rem] px-3.5 py-2.5 w-full outline-none transition-colors duration-200 focus:border-violet-600 resize-y leading-[1.6]"></textarea>
+
+          <!-- Demo scenario chips -->
+          <div class="mt-3 mb-4">
+            <p class="text-[0.75rem] text-[#4e4c6a] mb-2 font-medium uppercase tracking-wide">Quick scenarios</p>
+            <div class="flex flex-wrap gap-2">
+              <button class="scenario-chip inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-lume-bg border border-white/[0.08] text-[0.78rem] text-[#9896b8]"
+                      onclick="loadScenario('terraform')">🏗️ Terraform GCS bucket</button>
+              <button class="scenario-chip inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-lume-bg border border-white/[0.08] text-[0.78rem] text-[#9896b8]"
+                      onclick="loadScenario('iam')">🔐 IAM policies</button>
+              <button class="scenario-chip inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-lume-bg border border-white/[0.08] text-[0.78rem] text-[#9896b8]"
+                      onclick="loadScenario('hipaa')">⚕️ HIPAA data handling</button>
+            </div>
+          </div>
+
+          <button id="run-rag-btn" onclick="runRagQuery()"
+            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-md shadow-violet-900/30 hover:shadow-violet-900/50 hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none">
+            <i class="bi bi-play-circle"></i> Run RAG Query
+          </button>
+        </div>
+      </div>
+
+      <!-- RIGHT: Results -->
+      <div class="flex flex-col gap-4">
+
+        <!-- Placeholder when no results -->
+        <div id="rag-placeholder" class="bg-lume-card border border-white/[0.08] rounded-2xl p-8 text-center">
+          <i class="bi bi-braces-asterisk text-4xl text-[#4e4c6a] block mb-3"></i>
+          <p class="text-[#9896b8] text-sm">Upload a document or choose a quick scenario, then run a query to see retrieved chunks and a synthesised answer here.</p>
+        </div>
+
+        <!-- Results (hidden until query runs) -->
+        <div id="rag-results" class="hidden flex flex-col gap-4">
+
+          <!-- Retrieved Chunks -->
+          <div class="bg-lume-card border border-white/[0.08] rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h4 class="font-display text-[0.95rem] font-semibold flex items-center gap-2">
+                <i class="bi bi-collection text-blue-400"></i> Retrieved Chunks
+              </h4>
+              <span id="chunks-count" class="tag tag-blue"></span>
+            </div>
+            <div id="chunks-list" class="flex flex-col gap-3"></div>
+          </div>
+
+          <!-- Synthesised Answer -->
+          <div class="bg-lume-card border border-white/[0.08] rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="font-display text-[0.95rem] font-semibold flex items-center gap-2">
+                <i class="bi bi-robot text-violet-400"></i> Synthesised Answer
+              </h4>
+              <span id="answer-confidence" class="tag"></span>
+            </div>
+            <p id="answer-text" class="text-[#f1f0ff] text-[0.9rem] leading-[1.75]"></p>
+          </div>
+
+          <!-- Query metadata -->
+          <div id="query-meta" class="bg-lume-bg2 border border-white/[0.06] rounded-xl px-4 py-2.5 text-[0.75rem] text-[#4e4c6a] font-mono flex flex-wrap gap-x-4 gap-y-1"></div>
+
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /panel-rag -->
+
+  <!-- ═══ TAB 2: IaC STRUCTURE MAPPER ═══ -->
+  <div id="panel-iac" class="hidden pb-16">
+
+    <!-- Controls row -->
+    <div class="bg-lume-card border border-white/[0.08] rounded-2xl p-5 mb-6">
+      <div class="flex flex-wrap gap-6 items-end">
+
+        <!-- Cloud provider -->
+        <div>
+          <p class="text-[0.75rem] font-medium text-[#9896b8] uppercase tracking-wide mb-2">Cloud Provider</p>
+          <div class="flex gap-1.5">
+            <button class="cloud-btn inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-lume-bg border border-white/[0.08] text-sm font-medium text-[#9896b8] active" data-cloud="aws" onclick="setCloud('aws')">
+              <i class="bi bi-cloud-fill text-amber-400 text-xs"></i> AWS
+            </button>
+            <button class="cloud-btn inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-lume-bg border border-white/[0.08] text-sm font-medium text-[#9896b8]" data-cloud="gcp" onclick="setCloud('gcp')">
+              <i class="bi bi-google text-blue-400 text-xs"></i> GCP
+            </button>
+            <button class="cloud-btn inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-lume-bg border border-white/[0.08] text-sm font-medium text-[#9896b8]" data-cloud="azure" onclick="setCloud('azure')">
+              <i class="bi bi-microsoft text-cyan-400 text-xs"></i> Azure
+            </button>
+          </div>
+        </div>
+
+        <!-- Architecture pattern -->
+        <div class="flex-1 min-w-[180px]">
+          <p class="text-[0.75rem] font-medium text-[#9896b8] uppercase tracking-wide mb-2">Architecture Pattern</p>
+          <select id="arch-pattern" onchange="updateFormatOptions()"
+            class="bg-lume-bg border border-white/[0.08] rounded-lg text-[#f1f0ff] text-sm px-3 py-2 w-full outline-none focus:border-violet-600 appearance-none cursor-pointer">
+            <option value="webapp">Web App (3-tier)</option>
+            <option value="serverless">Serverless API</option>
+            <option value="ml">ML Training Pipeline</option>
+            <option value="datalake">Data Lake</option>
+            <option value="k8s">Kubernetes Cluster</option>
+            <option value="zerotrust">Zero-Trust Network</option>
+          </select>
+        </div>
+
+        <!-- IaC format -->
+        <div>
+          <p class="text-[0.75rem] font-medium text-[#9896b8] uppercase tracking-wide mb-2">IaC Format</p>
+          <div id="format-btns" class="flex gap-1.5 flex-wrap">
+            <button class="iac-format-btn inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-lume-bg border border-white/[0.08] text-sm font-medium text-[#9896b8] active" data-fmt="terraform" onclick="setFormat('terraform')">
+              <i class="bi bi-filetype-raw text-violet-400 text-xs"></i> Terraform
+            </button>
+            <button class="iac-format-btn inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-lume-bg border border-white/[0.08] text-sm font-medium text-[#9896b8]" data-fmt="cloudformation" onclick="setFormat('cloudformation')">
+              <i class="bi bi-filetype-yml text-amber-400 text-xs"></i> CloudFormation
+            </button>
+            <button class="iac-format-btn inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-lume-bg border border-white/[0.08] text-sm font-medium text-[#9896b8] hidden" data-fmt="bicep" onclick="setFormat('bicep')">
+              <i class="bi bi-braces text-cyan-400 text-xs"></i> Bicep
+            </button>
+            <button class="iac-format-btn inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-lume-bg border border-white/[0.08] text-sm font-medium text-[#9896b8] hidden" data-fmt="deploymentmanager" onclick="setFormat('deploymentmanager')">
+              <i class="bi bi-filetype-yml text-blue-400 text-xs"></i> Deployment Manager
+            </button>
+          </div>
+        </div>
+
+        <!-- Generate button -->
+        <div>
+          <button id="gen-btn" onclick="generateIac()"
+            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold bg-gradient-to-r from-violet-600 to-blue-600 text-white shadow-md shadow-violet-900/30 hover:shadow-violet-900/50 hover:-translate-y-0.5 transition-all duration-200">
+            <i class="bi bi-lightning-charge-fill"></i> Generate
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Output: arch diagram + code -->
+    <div id="iac-placeholder" class="bg-lume-card border border-white/[0.08] rounded-2xl p-10 text-center">
+      <i class="bi bi-diagram-3 text-4xl text-[#4e4c6a] block mb-3"></i>
+      <p class="text-[#9896b8] text-sm">Select a cloud provider, architecture pattern, and IaC format, then click <strong class="text-[#f1f0ff]">Generate</strong>.</p>
+    </div>
+
+    <div id="iac-output" class="hidden grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+      <!-- Architecture diagram -->
+      <div class="bg-lume-card border border-white/[0.08] rounded-2xl p-5">
+        <h4 class="font-display text-[0.95rem] font-semibold mb-4 flex items-center gap-2">
+          <i class="bi bi-diagram-3 text-blue-400"></i> Architecture Map
+        </h4>
+        <div id="arch-diagram" class="flex flex-col items-center gap-0 min-h-[360px]"></div>
+      </div>
+
+      <!-- Generated code -->
+      <div class="bg-lume-card border border-white/[0.08] rounded-2xl p-5 flex flex-col">
+        <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+          <h4 class="font-display text-[0.95rem] font-semibold flex items-center gap-2">
+            <i class="bi bi-code-slash text-violet-400"></i> Generated IaC
+            <span id="iac-filename" class="font-mono text-[0.72rem] text-[#4e4c6a] font-normal"></span>
+          </h4>
+          <div class="flex gap-2">
+            <button id="copy-btn" onclick="copyIacCode()"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-lume-bg border border-white/[0.08] text-[#9896b8] hover:border-violet-600/40 hover:text-[#f1f0ff] transition-all">
+              <i class="bi bi-clipboard" id="copy-icon"></i> Copy
+            </button>
+            <button onclick="downloadIacCode()"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-lume-bg border border-white/[0.08] text-[#9896b8] hover:border-blue-600/40 hover:text-[#f1f0ff] transition-all">
+              <i class="bi bi-download"></i> Download
+            </button>
+          </div>
+        </div>
+        <div class="bg-lume-bg rounded-xl border border-white/[0.06] overflow-auto flex-1" style="max-height:520px">
+          <div id="iac-code" class="iac-line-wrap py-4"></div>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- /panel-iac -->
+
+</div><!-- /main container -->
+
+<!-- ─── FOOTER ─── -->
+<footer class="border-t border-white/[0.06] mt-auto">
+  <div class="max-w-[1200px] mx-auto px-6 py-5 flex flex-wrap items-center justify-between gap-4 text-[0.78rem] text-[#4e4c6a]">
+    <span>© 2025 Stack Lume, Inc. — rag-demo.stacklume.cloud <span class="text-amber-600/70">(Private)</span></span>
+    <div class="flex gap-4">
+      <a href="../index.html" class="hover:text-[#9896b8] transition-colors">Main Demo</a>
+      <a href="https://api.stacklume.cloud" class="hover:text-[#9896b8] transition-colors">API</a>
+      <a href="https://stacklume.cloud" class="hover:text-[#9896b8] transition-colors">Main Site</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ══════════════════════════════════════════════════
+   SECURITY HELPERS
+══════════════════════════════════════════════════ */
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+/* ══════════════════════════════════════════════════
+   TAB SWITCHING
+══════════════════════════════════════════════════ */
+function switchTab(tab) {
+  document.getElementById('panel-rag').classList.toggle('hidden', tab !== 'rag');
+  document.getElementById('panel-iac').classList.toggle('hidden', tab !== 'iac');
+  document.getElementById('tab-rag-btn').classList.toggle('active', tab === 'rag');
+  document.getElementById('tab-iac-btn').classList.toggle('active', tab === 'iac');
+}
+
+/* ══════════════════════════════════════════════════
+   RAG STATE
+══════════════════════════════════════════════════ */
+let ragChunks = [];          // indexed chunks from current doc
+let ragScenario = null;      // active demo scenario key
+let ragFileName = 'document.txt';
+
+/* ── Demo scenarios ── */
+const SCENARIOS = {
+  terraform: {
+    fileName: 'gcs_bucket.tf',
+    content: `# Stack Lume — Terraform: GCP Cloud Storage bucket with encryption and versioning
+variable "project_id" {
+  description = "The GCP project ID"
+  type        = string
+}
+variable "region" {
+  description = "GCP region"
+  type        = string
+  default     = "us-central1"
+}
+resource "google_kms_key_ring" "keyring" {
+  name     = "stacklume-keyring"
+  location = var.region
+}
+resource "google_kms_crypto_key" "bucket_key" {
+  name            = "bucket-encryption-key"
+  key_ring        = google_kms_key_ring.keyring.id
+  rotation_period = "7776000s"
+  lifecycle { prevent_destroy = true }
+}
+resource "google_storage_bucket" "assets" {
+  name          = "\${var.project_id}-assets-prod"
+  location      = "US"
+  storage_class = "STANDARD"
+  force_destroy = false
+  uniform_bucket_level_access = true
+  versioning {
+    enabled = true
+  }
+  lifecycle_rule {
+    action { type = "SetStorageClass" storage_class = "NEARLINE" }
+    condition { age = 30 }
+  }
+  lifecycle_rule {
+    action { type = "Delete" }
+    condition { age = 365 noncurrent_version = true }
+  }
+  encryption {
+    default_kms_key_name = google_kms_crypto_key.bucket_key.id
+  }
+  logging {
+    log_bucket        = google_storage_bucket.logs.name
+    log_object_prefix = "assets-access"
+  }
+  labels = {
+    environment = "production"
+    managed-by  = "terraform"
+    team        = "platform"
+  }
+}
+resource "google_storage_bucket" "logs" {
+  name          = "\${var.project_id}-access-logs"
+  location      = "US"
+  storage_class = "COLDLINE"
+  force_destroy = false
+  retention_policy {
+    is_locked        = true
+    retention_period = 2592000
+  }
+}
+resource "google_storage_bucket_iam_binding" "viewers" {
+  bucket  = google_storage_bucket.assets.name
+  role    = "roles/storage.objectViewer"
+  members = ["serviceAccount:\${var.project_id}@appspot.gserviceaccount.com"]
+}`,
+    question: 'What encryption and versioning settings are configured for the GCS bucket?',
+    answer: 'The GCS bucket is encrypted with a customer-managed KMS key (`google_kms_crypto_key.bucket_key`) that rotates every 90 days (7,776,000 seconds). Object versioning is enabled (`versioning { enabled = true }`), and non-current versions are automatically deleted after 365 days. A lifecycle rule also transitions current objects to Nearline storage after 30 days to reduce cost.',
+    confidence: 'High',
+    chunks: [
+      { text: 'resource "google_kms_crypto_key" "bucket_key" {\n  name            = "bucket-encryption-key"\n  key_ring        = google_kms_key_ring.keyring.id\n  rotation_period = "7776000s"\n  lifecycle { prevent_destroy = true }\n}', score: 0.94, source: 'gcs_bucket.tf · chunk 3 of 9' },
+      { text: 'versioning {\n  enabled = true\n}\nlifecycle_rule {\n  action { type = "Delete" }\n  condition { age = 365 noncurrent_version = true }\n}', score: 0.87, source: 'gcs_bucket.tf · chunk 5 of 9' },
+      { text: 'encryption {\n  default_kms_key_name = google_kms_crypto_key.bucket_key.id\n}\nlogging {\n  log_bucket        = google_storage_bucket.logs.name\n  log_object_prefix = "assets-access"\n}', score: 0.81, source: 'gcs_bucket.tf · chunk 6 of 9' }
+    ]
+  },
+  iam: {
+    fileName: 'iam_policies.json',
+    content: `{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyPublicS3Access",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": ["s3:GetObject","s3:PutObject"],
+      "Resource": "arn:aws:s3:::stacklume-data-prod/*",
+      "Condition": {
+        "Bool": { "aws:SecureTransport": "false" }
+      }
+    },
+    {
+      "Sid": "AllowAppRoleRead",
+      "Effect": "Allow",
+      "Principal": { "AWS": "arn:aws:iam::123456789012:role/AppRole" },
+      "Action": ["s3:GetObject","s3:ListBucket"],
+      "Resource": [
+        "arn:aws:s3:::stacklume-data-prod",
+        "arn:aws:s3:::stacklume-data-prod/*"
+      ]
+    },
+    {
+      "Sid": "AllowKMSDecrypt",
+      "Effect": "Allow",
+      "Principal": { "AWS": "arn:aws:iam::123456789012:role/AppRole" },
+      "Action": ["kms:Decrypt","kms:GenerateDataKey"],
+      "Resource": "arn:aws:kms:us-east-1:123456789012:key/mrk-abc123"
+    },
+    {
+      "Sid": "EnforceMFAForAdmin",
+      "Effect": "Deny",
+      "Principal": { "AWS": "arn:aws:iam::123456789012:role/AdminRole" },
+      "Action": "*",
+      "Resource": "*",
+      "Condition": {
+        "BoolIfExists": { "aws:MultiFactorAuthPresent": "false" }
+      }
+    },
+    {
+      "Sid": "DenyLeavingOrg",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": ["organizations:LeaveOrganization"],
+      "Resource": "*"
+    }
+  ]
+}`,
+    question: 'What IAM conditions enforce MFA and deny public S3 access?',
+    answer: 'Two IAM policy statements enforce security guardrails. `DenyPublicS3Access` denies all S3 GetObject/PutObject requests where `aws:SecureTransport` is false, blocking any unencrypted HTTP access to the bucket. `EnforceMFAForAdmin` uses a `BoolIfExists` condition on `aws:MultiFactorAuthPresent: false` to deny all actions for the AdminRole unless MFA has been completed, effectively requiring MFA for all admin operations.',
+    confidence: 'High',
+    chunks: [
+      { text: '{\n  "Sid": "DenyPublicS3Access",\n  "Effect": "Deny",\n  "Condition": {\n    "Bool": { "aws:SecureTransport": "false" }\n  }\n}', score: 0.96, source: 'iam_policies.json · chunk 2 of 6' },
+      { text: '{\n  "Sid": "EnforceMFAForAdmin",\n  "Effect": "Deny",\n  "Condition": {\n    "BoolIfExists": { "aws:MultiFactorAuthPresent": "false" }\n  }\n}', score: 0.91, source: 'iam_policies.json · chunk 5 of 6' },
+      { text: '{\n  "Sid": "AllowKMSDecrypt",\n  "Action": ["kms:Decrypt","kms:GenerateDataKey"],\n  "Resource": "arn:aws:kms:us-east-1:123456789012:key/mrk-abc123"\n}', score: 0.72, source: 'iam_policies.json · chunk 4 of 6' }
+    ]
+  },
+  hipaa: {
+    fileName: 'hipaa_compliance.md',
+    content: `# HIPAA Data Handling Policy — Stack Lume Platform
+
+## 1. Scope
+This policy governs all Protected Health Information (PHI) processed by the Stack Lume platform, including data ingested through API endpoints, stored in cloud databases, and transmitted to downstream systems.
+
+## 2. Data Encryption Requirements
+All PHI must be encrypted at rest using AES-256 and in transit using TLS 1.2 or higher. Encryption keys must be rotated at least annually and must be stored in a dedicated Key Management Service (KMS) separate from the data they protect.
+
+## 3. Access Controls
+Access to PHI is governed by Role-Based Access Control (RBAC). The principle of least privilege applies: personnel are granted only the minimum necessary permissions to perform their job functions. All PHI access is logged to an immutable audit trail with a minimum retention of 6 years.
+
+## 4. Breach Notification
+In the event of a suspected breach, the Security Officer must be notified within 1 hour. If PHI is confirmed compromised, affected individuals must be notified within 60 days, and the Department of Health and Human Services (HHS) must be notified within 60 days for breaches affecting fewer than 500 individuals (annual summary report) or within 60 days of discovery for breaches affecting 500 or more individuals.
+
+## 5. Data Residency
+PHI must remain within United States borders unless a Business Associate Agreement (BAA) explicitly permits cross-border transfer to a jurisdiction with equivalent protections. Currently approved jurisdictions: Canada (PIPEDA), EU (GDPR with Standard Contractual Clauses).
+
+## 6. Backup and Recovery
+Daily encrypted backups are required. Backup integrity must be verified monthly via test restoration. Recovery Time Objective (RTO): 4 hours. Recovery Point Objective (RPO): 1 hour.
+
+## 7. De-identification
+PHI may be de-identified using either the Expert Determination method or the Safe Harbor method as defined in 45 CFR §164.514. De-identified data is no longer subject to HIPAA restrictions.`,
+    question: 'What are the encryption requirements and breach notification timelines for PHI?',
+    answer: 'PHI must be encrypted at rest using AES-256 and in transit using TLS 1.2 or higher, with keys rotated at least annually in a separate KMS. In a breach scenario, the Security Officer must be notified within 1 hour. Affected individuals must be notified within 60 days; HHS must be notified within 60 days for large breaches (500+ individuals) or via an annual summary report for smaller ones.',
+    confidence: 'High',
+    chunks: [
+      { text: 'All PHI must be encrypted at rest using AES-256 and in transit using TLS 1.2 or higher. Encryption keys must be rotated at least annually and must be stored in a dedicated Key Management Service (KMS) separate from the data they protect.', score: 0.95, source: 'hipaa_compliance.md · chunk 3 of 8' },
+      { text: 'In the event of a suspected breach, the Security Officer must be notified within 1 hour. If PHI is confirmed compromised, affected individuals must be notified within 60 days, and HHS must be notified within 60 days for breaches affecting 500 or more individuals.', score: 0.92, source: 'hipaa_compliance.md · chunk 5 of 8' },
+      { text: 'Access to PHI is governed by Role-Based Access Control (RBAC). The principle of least privilege applies. All PHI access is logged to an immutable audit trail with a minimum retention of 6 years.', score: 0.68, source: 'hipaa_compliance.md · chunk 4 of 8' }
+    ]
+  }
+};
+
+/* ── File upload handling ── */
+function handleDragOver(e) { e.preventDefault(); document.getElementById('drop-zone').classList.add('drag-over'); }
+function handleDragLeave(e) { document.getElementById('drop-zone').classList.remove('drag-over'); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFileSelect(file);
+}
+
+function fileIcon(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  if (ext === 'pdf') return 'bi-filetype-pdf';
+  if (['yaml','yml'].includes(ext)) return 'bi-filetype-yml';
+  if (ext === 'json') return 'bi-filetype-json';
+  if (['tf','bicep','cfn'].includes(ext)) return 'bi-file-code';
+  return 'bi-file-earmark-text';
+}
+
+function fmtSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1048576).toFixed(1) + ' MB';
+}
+
+let uploadedFileContent = null;
+
+function handleFileSelect(file) {
+  if (!file) return;
+  ragScenario = null;
+  ragFileName = file.name;
+
+  // Show file info
+  document.getElementById('drop-idle').classList.add('hidden');
+  const fileDiv = document.getElementById('drop-file');
+  fileDiv.classList.remove('hidden');
+  fileDiv.classList.add('flex');
+  document.getElementById('file-icon').className = 'bi ' + fileIcon(file.name) + ' text-2xl text-violet-400';
+  document.getElementById('file-name').textContent = file.name;
+  document.getElementById('file-meta').textContent = fmtSize(file.size) + ' · ' + (file.type || 'text/plain');
+
+  // Simulate indexing
+  const statusEl = document.getElementById('index-status');
+  const spinnerEl = document.getElementById('index-spinner');
+  const textEl = document.getElementById('index-text');
+  statusEl.classList.remove('hidden');
+  statusEl.classList.add('flex');
+  spinnerEl.classList.remove('hidden');
+  textEl.textContent = 'Indexing document… (simulated)';
+  textEl.className = 'text-[#9896b8]';
+
+  const isBinary = file.type === 'application/pdf';
+
+  if (!isBinary) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      uploadedFileContent = e.target.result;
+      ragChunks = chunkText(uploadedFileContent, 200);
+      setTimeout(() => {
+        spinnerEl.classList.add('hidden');
+        textEl.innerHTML = '<i class="bi bi-check-circle text-green-400 mr-1"></i> ' + escHtml(ragChunks.length) + ' chunks indexed';
+        textEl.className = 'text-green-400';
+      }, 800);
+    };
+    reader.readAsText(file);
+  } else {
+    uploadedFileContent = null;
+    ragChunks = [];
+    setTimeout(() => {
+      spinnerEl.classList.add('hidden');
+      textEl.innerHTML = '<i class="bi bi-info-circle text-amber-400 mr-1"></i> Binary file — text extraction not available in browser demo';
+      textEl.className = 'text-amber-400';
+    }, 800);
+  }
+}
+
+/* ── Text chunking ── */
+function chunkText(text, size) {
+  const words = text.split(/\s+/);
+  const chunks = [];
+  for (let i = 0; i < words.length; i += size) {
+    chunks.push(words.slice(i, i + size).join(' '));
+  }
+  return chunks.filter(c => c.trim().length > 10);
+}
+
+/* ── Keyword relevance scoring ── */
+function scoreChunk(chunk, question) {
+  const qWords = new Set(question.toLowerCase().split(/\W+/).filter(w => w.length > 3));
+  const cWords = chunk.toLowerCase().split(/\W+/);
+  let score = 0;
+  for (const w of cWords) { if (qWords.has(w)) score++; }
+  return score / Math.max(qWords.size, 1);
+}
+
+/* ── Load demo scenario ── */
+function loadScenario(key) {
+  const s = SCENARIOS[key];
+  ragScenario = key;
+  ragFileName = s.fileName;
+  uploadedFileContent = s.content;
+  ragChunks = chunkText(s.content, 200);
+
+  document.getElementById('rag-question').value = s.question;
+
+  // Show file info
+  document.getElementById('drop-idle').classList.add('hidden');
+  const fileDiv = document.getElementById('drop-file');
+  fileDiv.classList.remove('hidden');
+  fileDiv.classList.add('flex');
+  document.getElementById('file-icon').className = 'bi ' + fileIcon(s.fileName) + ' text-2xl text-violet-400';
+  document.getElementById('file-name').textContent = s.fileName;
+  document.getElementById('file-meta').textContent = '(demo scenario)';
+
+  const statusEl = document.getElementById('index-status');
+  const spinnerEl = document.getElementById('index-spinner');
+  const textEl = document.getElementById('index-text');
+  statusEl.classList.remove('hidden');
+  statusEl.classList.add('flex');
+  spinnerEl.classList.remove('hidden');
+  textEl.textContent = 'Indexing document… (simulated)';
+  textEl.className = 'text-[#9896b8]';
+  setTimeout(() => {
+    spinnerEl.classList.add('hidden');
+    textEl.innerHTML = '<i class="bi bi-check-circle text-green-400 mr-1"></i> ' + escHtml(ragChunks.length) + ' chunks indexed';
+    textEl.className = 'text-green-400';
+  }, 600);
+}
+
+/* ── Run RAG query ── */
+function runRagQuery() {
+  const question = document.getElementById('rag-question').value.trim();
+  if (!question) { alert('Please enter a question first.'); return; }
+
+  const btn = document.getElementById('run-rag-btn');
+  btn.innerHTML = '<i class="bi bi-arrow-repeat animate-spinner"></i> Running…';
+  btn.disabled = true;
+
+  const delay = 900 + Math.floor(crypto.getRandomValues(new Uint32Array(1))[0] % 800);
+
+  setTimeout(() => {
+    btn.innerHTML = '<i class="bi bi-play-circle"></i> Run RAG Query';
+    btn.disabled = false;
+
+    let retrievedChunks, answer, confidence;
+
+    if (ragScenario && SCENARIOS[ragScenario]) {
+      const s = SCENARIOS[ragScenario];
+      retrievedChunks = s.chunks;
+      answer = s.answer;
+      confidence = s.confidence;
+    } else if (ragChunks.length > 0) {
+      // Real file: score chunks by keyword overlap
+      const scored = ragChunks.map((c, i) => ({
+        text: c, score: scoreChunk(c, question), idx: i
+      }));
+      scored.sort((a, b) => b.score - a.score);
+      const top = scored.slice(0, 3);
+      const total = ragChunks.length;
+      retrievedChunks = top.map((c, i) => ({
+        text: c.text,
+        score: Math.min(0.99, 0.55 + c.score * 0.4 + (0.05 * (2 - i))),
+        source: escHtml(ragFileName) + ' · chunk ' + (c.idx + 1) + ' of ' + total
+      }));
+      // Synthesise answer from top chunk
+      const topText = top[0] ? top[0].text : '';
+      answer = 'Based on the uploaded document, the most relevant section states: "' +
+        topText.slice(0, 220).trim() + (topText.length > 220 ? '…' : '') +
+        '" — This was the highest-scoring passage for your query using keyword retrieval against ' + total + ' indexed chunks.';
+      confidence = (top[0] && top[0].score > 0.3) ? 'Medium' : 'Low';
+    } else {
+      answer = 'No document has been indexed. Please upload a file or choose a demo scenario.';
+      retrievedChunks = [];
+      confidence = 'Low';
+    }
+
+    renderRagResults(retrievedChunks, answer, confidence, question, delay);
+  }, delay);
+}
+
+function renderRagResults(chunks, answer, confidence, question, elapsed) {
+  document.getElementById('rag-placeholder').classList.add('hidden');
+  const resultsEl = document.getElementById('rag-results');
+  resultsEl.classList.remove('hidden');
+  resultsEl.classList.add('flex');
+
+  // Chunks
+  document.getElementById('chunks-count').textContent = chunks.length + ' chunks';
+  const list = document.getElementById('chunks-list');
+  list.innerHTML = '';
+  chunks.forEach((chunk, i) => {
+    const pct = Math.round(chunk.score * 100);
+    let scoreClass = 'score-high';
+    if (pct < 70) scoreClass = 'score-medium';
+    if (pct < 45) scoreClass = 'score-low';
+    const uid = 'chunk-' + i + '-' + Date.now();
+    list.insertAdjacentHTML('beforeend', `
+      <div class="bg-lume-bg rounded-xl p-4 border border-white/[0.06]">
+        <div class="flex items-center justify-between mb-2">
+          <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-violet-600/20 text-violet-400 text-[0.7rem] font-bold">#${i+1}</span>
+          <span class="text-[0.72rem] text-[#4e4c6a] font-mono">${escHtml(chunk.source || ragFileName + ' · chunk ' + (i+1))}</span>
+        </div>
+        <div class="score-bar-wrap ${scoreClass}">
+          <div class="score-bar-label"><span>Relevance</span><span>${pct}%</span></div>
+          <div class="score-bar"><div class="score-bar__fill" id="bar-${uid}" style="width:0"></div></div>
+        </div>
+        <pre class="chunk-text font-mono text-[0.78rem] text-[#9896b8] leading-[1.7] mt-2 whitespace-pre-wrap" id="txt-${uid}">${escHtml(chunk.text)}</pre>
+        <button class="text-[0.72rem] text-violet-400 mt-1.5 hover:text-violet-300 transition-colors" onclick="toggleChunk('txt-${uid}',this)">Show more</button>
+      </div>`);
+    // Animate bar after paint
+    requestAnimationFrame(() => {
+      const barEl = document.getElementById('bar-' + uid);
+      if (barEl) barEl.style.width = pct + '%';
+    });
+  });
+
+  // Answer
+  const confClass = confidence === 'High' ? 'tag-green' : confidence === 'Medium' ? 'tag-amber' : 'tag-red';
+  document.getElementById('answer-confidence').className = 'tag ' + confClass;
+  document.getElementById('answer-confidence').textContent = confidence + ' confidence';
+  document.getElementById('answer-text').textContent = answer;
+
+  // Metadata
+  const windowTokens = 4096;
+  document.getElementById('query-meta').innerHTML =
+    '<span>' + chunks.length + ' chunks retrieved</span>' +
+    '<span>·</span><span>' + elapsed + 'ms</span>' +
+    '<span>·</span><span>model: lume-rag-v2</span>' +
+    '<span>·</span><span>context window: ' + windowTokens + ' tokens</span>';
+}
+
+function toggleChunk(id, btn) {
+  const el = document.getElementById(id);
+  el.classList.toggle('expanded');
+  btn.textContent = el.classList.contains('expanded') ? 'Show less' : 'Show more';
+}
+
+/* ══════════════════════════════════════════════════
+   IaC MAPPER STATE
+══════════════════════════════════════════════════ */
+let iacCloud = 'aws';
+let iacFormat = 'cloudformation';
+let iacCode = '';
+
+function setCloud(cloud) {
+  iacCloud = cloud;
+  document.querySelectorAll('.cloud-btn').forEach(b => b.classList.toggle('active', b.dataset.cloud === cloud));
+  updateFormatOptions();
+}
+
+function setFormat(fmt) {
+  iacFormat = fmt;
+  document.querySelectorAll('.iac-format-btn').forEach(b => b.classList.toggle('active', b.dataset.fmt === fmt));
+}
+
+function updateFormatOptions() {
+  const tfBtn  = document.querySelector('[data-fmt="terraform"]');
+  const cfBtn  = document.querySelector('[data-fmt="cloudformation"]');
+  const bicepBtn = document.querySelector('[data-fmt="bicep"]');
+  const dmBtn  = document.querySelector('[data-fmt="deploymentmanager"]');
+
+  // Show/hide based on cloud
+  cfBtn.classList.toggle('hidden', iacCloud !== 'aws');
+  bicepBtn.classList.toggle('hidden', iacCloud !== 'azure');
+  dmBtn.classList.toggle('hidden', iacCloud !== 'gcp');
+  tfBtn.classList.remove('hidden');
+
+  // Auto-select default format
+  if (iacCloud === 'aws')   setFormat('cloudformation');
+  else if (iacCloud === 'gcp')   setFormat('terraform');
+  else if (iacCloud === 'azure') setFormat('bicep');
+}
+
+/* ── IaC code snippets ── */
+const IAC_TEMPLATES = {
+  // ── AWS ──────────────────────────────────────────
+  'aws|webapp|cloudformation': {
+    filename: 'stacklume-webapp.yaml',
+    code: `AWSTemplateFormatVersion: '2010-09-09'
+Description: Stack Lume — 3-Tier Web Application
+
+Parameters:
+  Environment:
+    Type: String
+    Default: production
+    AllowedValues: [production, staging, development]
+  DBPassword:
+    Type: String
+    NoEcho: true
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - { Key: Name, Value: stacklume-vpc }
+        - { Key: Environment, Value: !Ref Environment }
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: true
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.10.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+
+  ALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Type: application
+      Scheme: internet-facing
+      Subnets: [!Ref PublicSubnet1, !Ref PublicSubnet2]
+      SecurityGroups: [!Ref ALBSecurityGroup]
+
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ALB inbound HTTP/HTTPS
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - { IpProtocol: tcp, FromPort: 443, ToPort: 443, CidrIp: 0.0.0.0/0 }
+        - { IpProtocol: tcp, FromPort: 80,  ToPort: 80,  CidrIp: 0.0.0.0/0 }
+
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub stacklume-\${Environment}
+      CapacityProviders: [FARGATE, FARGATE_SPOT]
+
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: { Service: ecs-tasks.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  RDSSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Stack Lume RDS subnets
+      SubnetIds: [!Ref PrivateSubnet1]
+
+  RDSInstance:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Snapshot
+    Properties:
+      DBInstanceClass: db.t3.medium
+      Engine: postgres
+      EngineVersion: '15.4'
+      MasterUsername: stacklume
+      MasterUserPassword: !Sub '{{resolve:secretsmanager:\${Environment}/db/password}}'
+      AllocatedStorage: '100'
+      StorageEncrypted: true
+      StorageType: gp3
+      MultiAZ: true
+      DBSubnetGroupName: !Ref RDSSubnetGroup
+      BackupRetentionPeriod: 7
+      DeletionProtection: true
+
+  AssetsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub stacklume-assets-\${Environment}-\${AWS::AccountId}
+      VersioningConfiguration: { Status: Enabled }
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: { SSEAlgorithm: aws:kms }
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true`,
+    ext: 'yaml'
+  },
+
+  'aws|serverless|cloudformation': {
+    filename: 'stacklume-serverless-api.yaml',
+    code: `AWSTemplateFormatVersion: '2010-09-09'
+Description: Stack Lume — Serverless API (API Gateway + Lambda + DynamoDB)
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  Environment: { Type: String, Default: production }
+  LogRetentionDays: { Type: Number, Default: 30 }
+
+Globals:
+  Function:
+    Runtime: python3.12
+    MemorySize: 512
+    Timeout: 30
+    Environment:
+      Variables:
+        TABLE_NAME: !Ref DataTable
+        ENVIRONMENT: !Ref Environment
+    Layers: [!Ref DependenciesLayer]
+    Tracing: Active
+
+Resources:
+  RestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub stacklume-api-\${Environment}
+      StageName: !Ref Environment
+      TracingEnabled: true
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt UserPool.Arn
+      Cors:
+        AllowOrigin: "'https://app.stacklume.cloud'"
+        AllowHeaders: "'Content-Type,Authorization'"
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+
+  IngestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub stacklume-ingest-\${Environment}
+      CodeUri: src/ingest/
+      Handler: handler.lambda_handler
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref DataTable }
+        - Statement:
+            - Effect: Allow
+              Action: [bedrock:InvokeModel]
+              Resource: '*'
+      Events:
+        PostEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /v1/ingest
+            Method: POST
+
+  QueryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub stacklume-query-\${Environment}
+      CodeUri: src/query/
+      Handler: handler.lambda_handler
+      Policies:
+        - DynamoDBReadPolicy: { TableName: !Ref DataTable }
+      Events:
+        GetEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref RestApi
+            Path: /v1/query
+            Method: GET
+
+  DataTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    Properties:
+      TableName: !Sub stacklume-data-\${Environment}
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification: { PointInTimeRecoveryEnabled: true }
+      SSESpecification: { SSEEnabled: true }
+      AttributeDefinitions:
+        - { AttributeName: pk, AttributeType: S }
+        - { AttributeName: sk, AttributeType: S }
+      KeySchema:
+        - { AttributeName: pk, KeyType: HASH }
+        - { AttributeName: sk, KeyType: RANGE }
+      GlobalSecondaryIndexes:
+        - IndexName: sk-index
+          KeySchema: [{ AttributeName: sk, KeyType: HASH }]
+          Projection: { ProjectionType: ALL }
+
+  DependenciesLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: !Sub stacklume-deps-\${Environment}
+      ContentUri: layers/dependencies/
+      CompatibleRuntimes: [python3.12]
+      RetentionPolicy: Retain
+
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub stacklume-\${Environment}
+      AutoVerifiedAttributes: [email]
+      PasswordPolicy:
+        MinimumLength: 12
+        RequireUppercase: true
+        RequireNumbers: true
+        RequireSymbols: true
+      MfaConfiguration: OPTIONAL`,
+    ext: 'yaml'
+  },
+
+  'aws|webapp|terraform': {
+    filename: 'main.tf',
+    code: `provider "aws" {
+  region = var.aws_region
+  default_tags {
+    tags = {
+      Project   = "stacklume"
+      ManagedBy = "terraform"
+    }
+  }
+}
+
+variable "aws_region" { default = "us-east-1" }
+variable "environment" { default = "production" }
+
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "~> 5.0"
+  name = "stacklume-\${var.environment}"
+  cidr = "10.0.0.0/16"
+  azs             = ["\${var.aws_region}a", "\${var.aws_region}b"]
+  private_subnets = ["10.0.10.0/24", "10.0.11.0/24"]
+  public_subnets  = ["10.0.1.0/24",  "10.0.2.0/24"]
+  enable_nat_gateway   = true
+  single_nat_gateway   = false
+  enable_dns_hostnames = true
+}
+
+resource "aws_security_group" "alb" {
+  name   = "stacklume-alb-\${var.environment}"
+  vpc_id = module.vpc.vpc_id
+  ingress { from_port = 443 to_port = 443 protocol = "tcp" cidr_blocks = ["0.0.0.0/0"] }
+  ingress { from_port = 80  to_port = 80  protocol = "tcp" cidr_blocks = ["0.0.0.0/0"] }
+  egress  { from_port = 0   to_port = 0   protocol = "-1"  cidr_blocks = ["0.0.0.0/0"] }
+}
+
+resource "aws_lb" "main" {
+  name               = "stacklume-alb-\${var.environment}"
+  load_balancer_type = "application"
+  internal           = false
+  subnets            = module.vpc.public_subnets
+  security_groups    = [aws_security_group.alb.id]
+  drop_invalid_header_fields = true
+}
+
+resource "aws_ecs_cluster" "main" {
+  name = "stacklume-\${var.environment}"
+  setting { name = "containerInsights" value = "enabled" }
+}
+
+resource "aws_db_subnet_group" "main" {
+  name       = "stacklume-\${var.environment}"
+  subnet_ids = module.vpc.private_subnets
+}
+
+resource "aws_db_instance" "postgres" {
+  identifier              = "stacklume-\${var.environment}"
+  engine                  = "postgres"
+  engine_version          = "15.4"
+  instance_class          = "db.t3.medium"
+  allocated_storage       = 100
+  storage_type            = "gp3"
+  storage_encrypted       = true
+  multi_az                = true
+  db_subnet_group_name    = aws_db_subnet_group.main.name
+  backup_retention_period = 7
+  deletion_protection     = true
+  skip_final_snapshot     = false
+  final_snapshot_identifier = "stacklume-final-\${var.environment}"
+  username = "stacklume"
+  password = data.aws_secretsmanager_secret_version.db_password.secret_string
+}
+
+data "aws_secretsmanager_secret_version" "db_password" {
+  secret_id = "\${var.environment}/db/password"
+}`,
+    ext: 'tf'
+  },
+
+  // ── GCP ──────────────────────────────────────────
+  'gcp|webapp|terraform': {
+    filename: 'main.tf',
+    code: `provider "google" {
+  project = var.project_id
+  region  = "us-central1"
+}
+
+variable "project_id"  { description = "GCP Project ID" }
+variable "region"      { default = "us-central1" }
+variable "environment" { default = "production" }
+
+resource "google_compute_network" "vpc" {
+  name                    = "stacklume-vpc"
+  auto_create_subnetworks = false
+}
+
+resource "google_compute_subnetwork" "subnet" {
+  name          = "stacklume-subnet"
+  ip_cidr_range = "10.0.0.0/24"
+  network       = google_compute_network.vpc.id
+  region        = var.region
+  private_ip_google_access = true
+  log_config { aggregation_interval = "INTERVAL_5_SEC" flow_sampling = 0.5 }
+}
+
+resource "google_compute_global_address" "lb_ip" {
+  name = "stacklume-lb-ip"
+}
+
+resource "google_compute_health_check" "hc" {
+  name               = "stacklume-health-check"
+  check_interval_sec = 10
+  timeout_sec        = 5
+  http_health_check  { port = 8080 request_path = "/healthz" }
+}
+
+resource "google_compute_backend_service" "backend" {
+  name          = "stacklume-backend"
+  protocol      = "HTTP"
+  timeout_sec   = 30
+  enable_cdn    = true
+  security_policy = google_compute_security_policy.policy.id
+  backend { group = google_compute_region_instance_group_manager.mig.instance_group }
+  health_checks = [google_compute_health_check.hc.id]
+}
+
+resource "google_compute_security_policy" "policy" {
+  name = "stacklume-security-policy"
+  rule {
+    action   = "deny(403)"
+    priority = 1000
+    match { versioned_expr = "SRC_IPS_V1" config { src_ip_ranges = ["9.9.9.0/24"] } }
+    description = "Block known bad IP range"
+  }
+  rule { action = "allow" priority = 2147483647 match { versioned_expr = "SRC_IPS_V1" config { src_ip_ranges = ["*"] } } }
+}
+
+resource "google_sql_database_instance" "db" {
+  name             = "stacklume-db-\${var.environment}"
+  database_version = "POSTGRES_15"
+  deletion_protection = true
+  settings {
+    tier              = "db-n1-standard-2"
+    availability_type = "REGIONAL"
+    backup_configuration {
+      enabled                        = true
+      point_in_time_recovery_enabled = true
+      transaction_log_retention_days = 7
+      backup_retention_settings { retained_backups = 14 }
+    }
+    ip_configuration {
+      require_ssl     = true
+      ipv4_enabled    = false
+      private_network = google_compute_network.vpc.id
+    }
+    database_flags { name = "log_connections" value = "on" }
+    insights_config { query_insights_enabled = true }
+  }
+}
+
+resource "google_storage_bucket" "assets" {
+  name          = "\${var.project_id}-assets"
+  location      = "US"
+  storage_class = "STANDARD"
+  force_destroy = false
+  uniform_bucket_level_access = true
+  versioning { enabled = true }
+  encryption { default_kms_key_name = google_kms_crypto_key.key.id }
+  lifecycle_rule {
+    action { type = "SetStorageClass" storage_class = "NEARLINE" }
+    condition { age = 30 }
+  }
+}
+
+resource "google_kms_key_ring" "keyring" {
+  name     = "stacklume-keyring"
+  location = var.region
+}
+
+resource "google_kms_crypto_key" "key" {
+  name            = "stacklume-key"
+  key_ring        = google_kms_key_ring.keyring.id
+  rotation_period = "7776000s"
+}`,
+    ext: 'tf'
+  },
+
+  'gcp|ml|terraform': {
+    filename: 'ml-pipeline.tf',
+    code: `provider "google" {
+  project = var.project_id
+  region  = "us-central1"
+}
+
+variable "project_id"  {}
+variable "region"      { default = "us-central1" }
+variable "zone"        { default = "us-central1-a" }
+variable "environment" { default = "production" }
+
+# ── Training data storage ─────────────────────────
+resource "google_storage_bucket" "training_data" {
+  name          = "\${var.project_id}-ml-training"
+  location      = "US"
+  storage_class = "STANDARD"
+  force_destroy = false
+  uniform_bucket_level_access = true
+  versioning { enabled = true }
+  lifecycle_rule {
+    action { type = "SetStorageClass" storage_class = "COLDLINE" }
+    condition { age = 90 }
+  }
+}
+
+resource "google_storage_bucket" "model_artifacts" {
+  name     = "\${var.project_id}-ml-models"
+  location = "US"
+  uniform_bucket_level_access = true
+  versioning { enabled = true }
+}
+
+# ── Vertex AI ─────────────────────────────────────
+resource "google_vertex_ai_dataset" "dataset" {
+  display_name = "stacklume-training-dataset"
+  metadata_schema_uri = "gs://google-cloud-aiplatform/schema/dataset/metadata/text_1.0.0.yaml"
+  region = var.region
+  labels = { environment = var.environment managed_by = "terraform" }
+}
+
+resource "google_vertex_ai_featurestore" "featurestore" {
+  name   = "stacklume_features"
+  region = var.region
+  online_serving_config { fixed_node_count = 2 }
+  encryption_spec { kms_key_name = google_kms_crypto_key.ml_key.id }
+}
+
+# ── BigQuery ──────────────────────────────────────
+resource "google_bigquery_dataset" "ml_results" {
+  dataset_id    = "stacklume_ml_results"
+  friendly_name = "Stack Lume ML Results"
+  location      = "US"
+  default_table_expiration_ms = 2592000000
+  labels = { environment = var.environment }
+  access {
+    role          = "OWNER"
+    special_group = "projectOwners"
+  }
+  access {
+    role          = "READER"
+    special_group = "projectReaders"
+  }
+}
+
+resource "google_bigquery_table" "predictions" {
+  dataset_id = google_bigquery_dataset.ml_results.dataset_id
+  table_id   = "predictions"
+  time_partitioning { type = "DAY" field = "prediction_date" }
+  clustering = ["model_version", "region"]
+  schema = jsonencode([
+    { name = "prediction_id"   type = "STRING"    mode = "REQUIRED" },
+    { name = "prediction_date" type = "TIMESTAMP" mode = "REQUIRED" },
+    { name = "model_version"   type = "STRING"    mode = "REQUIRED" },
+    { name = "input_features"  type = "JSON"      mode = "NULLABLE" },
+    { name = "output_score"    type = "FLOAT64"   mode = "NULLABLE" },
+    { name = "region"          type = "STRING"    mode = "NULLABLE" }
+  ])
+}
+
+# ── Service account ───────────────────────────────
+resource "google_service_account" "ml_runner" {
+  account_id   = "stacklume-ml-runner"
+  display_name = "Stack Lume ML Pipeline Runner"
+}
+
+resource "google_project_iam_member" "ml_runner_aiplatform" {
+  project = var.project_id
+  role    = "roles/aiplatform.user"
+  member  = "serviceAccount:\${google_service_account.ml_runner.email}"
+}
+
+resource "google_project_iam_member" "ml_runner_bq" {
+  project = var.project_id
+  role    = "roles/bigquery.dataEditor"
+  member  = "serviceAccount:\${google_service_account.ml_runner.email}"
+}
+
+resource "google_kms_key_ring" "ml_keyring" {
+  name     = "stacklume-ml-keyring"
+  location = var.region
+}
+
+resource "google_kms_crypto_key" "ml_key" {
+  name            = "ml-encryption-key"
+  key_ring        = google_kms_key_ring.ml_keyring.id
+  rotation_period = "7776000s"
+  purpose         = "ENCRYPT_DECRYPT"
+}`,
+    ext: 'tf'
+  },
+
+  'gcp|serverless|terraform': {
+    filename: 'serverless.tf',
+    code: `provider "google" {
+  project = var.project_id
+  region  = "us-central1"
+}
+
+variable "project_id"  {}
+variable "region"      { default = "us-central1" }
+variable "environment" { default = "production" }
+
+resource "google_cloud_run_v2_service" "api" {
+  name     = "stacklume-api"
+  location = var.region
+  ingress  = "INGRESS_TRAFFIC_ALL"
+  template {
+    scaling { min_instance_count = 1 max_instance_count = 10 }
+    service_account = google_service_account.run_sa.email
+    containers {
+      image = "gcr.io/\${var.project_id}/stacklume-api:latest"
+      resources { limits = { cpu = "2" memory = "512Mi" } cpu_idle = true }
+      env { name = "PROJECT_ID" value = var.project_id }
+      env { name = "ENVIRONMENT" value = var.environment }
+    }
+    vpc_access {
+      connector = google_vpc_access_connector.connector.id
+      egress    = "PRIVATE_RANGES_ONLY"
+    }
+  }
+  traffic { type = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST" percent = 100 }
+}
+
+resource "google_cloud_run_service_iam_member" "public" {
+  service  = google_cloud_run_v2_service.api.name
+  location = google_cloud_run_v2_service.api.location
+  role     = "roles/run.invoker"
+  member   = "allUsers"
+}
+
+resource "google_firestore_database" "db" {
+  project     = var.project_id
+  name        = "(default)"
+  location_id = "us-central"
+  type        = "FIRESTORE_NATIVE"
+}
+
+resource "google_pubsub_topic" "events" {
+  name = "stacklume-events"
+  message_storage_policy { allowed_persistence_regions = [var.region] }
+}
+
+resource "google_vpc_access_connector" "connector" {
+  name          = "stacklume-connector"
+  region        = var.region
+  ip_cidr_range = "10.8.0.0/28"
+  network       = "default"
+}
+
+resource "google_service_account" "run_sa" {
+  account_id   = "stacklume-run-sa"
+  display_name = "Stack Lume Cloud Run SA"
+}`,
+    ext: 'tf'
+  },
+
+  // ── Azure ─────────────────────────────────────────
+  'azure|k8s|bicep': {
+    filename: 'aks-cluster.bicep',
+    code: `param location string = resourceGroup().location
+param clusterName string = 'stacklume-aks'
+param nodeCount int = 3
+param vmSize string = 'Standard_D4s_v3'
+param environment string = 'production'
+param kubernetesVersion string = '1.28.3'
+
+var tags = {
+  project: 'stacklume'
+  environment: environment
+  managedBy: 'bicep'
+}
+
+resource vnet 'Microsoft.Network/virtualNetworks@2023-04-01' = {
+  name: 'stacklume-vnet'
+  location: location
+  tags: tags
+  properties: {
+    addressSpace: { addressPrefixes: ['10.0.0.0/8'] }
+    subnets: [
+      {
+        name: 'aks-subnet'
+        properties: {
+          addressPrefix: '10.240.0.0/16'
+          privateEndpointNetworkPolicies: 'Disabled'
+        }
+      }
+      {
+        name: 'appgw-subnet'
+        properties: { addressPrefix: '10.241.0.0/24' }
+      }
+    ]
+  }
+}
+
+resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
+  name: '\${clusterName}-logs'
+  location: location
+  tags: tags
+  properties: {
+    sku: { name: 'PerGB2018' }
+    retentionInDays: 90
+    features: { enableLogAccessUsingOnlyResourcePermissions: true }
+  }
+}
+
+resource aks 'Microsoft.ContainerService/managedClusters@2023-07-01' = {
+  name: clusterName
+  location: location
+  tags: tags
+  identity: { type: 'SystemAssigned' }
+  properties: {
+    kubernetesVersion: kubernetesVersion
+    dnsPrefix: clusterName
+    enableRBAC: true
+    agentPoolProfiles: [
+      {
+        name: 'system'
+        count: nodeCount
+        vmSize: vmSize
+        osType: 'Linux'
+        osSKU: 'Ubuntu'
+        mode: 'System'
+        enableAutoScaling: true
+        minCount: 2
+        maxCount: 6
+        vnetSubnetID: vnet.properties.subnets[0].id
+        nodeTaints: ['CriticalAddonsOnly=true:NoSchedule']
+        upgradeSettings: { maxSurge: '33%' }
+      }
+      {
+        name: 'workload'
+        count: nodeCount
+        vmSize: vmSize
+        osType: 'Linux'
+        mode: 'User'
+        enableAutoScaling: true
+        minCount: 1
+        maxCount: 10
+        vnetSubnetID: vnet.properties.subnets[0].id
+      }
+    ]
+    networkProfile: {
+      networkPlugin: 'azure'
+      networkPolicy: 'calico'
+      loadBalancerSku: 'standard'
+      serviceCidr: '172.16.0.0/16'
+      dnsServiceIP: '172.16.0.10'
+    }
+    addonProfiles: {
+      omsAgent: {
+        enabled: true
+        config: { logAnalyticsWorkspaceResourceID: logAnalytics.id }
+      }
+      azurePolicy: { enabled: true }
+      ingressApplicationGateway: {
+        enabled: true
+        config: { subnetID: vnet.properties.subnets[1].id }
+      }
+    }
+    aadProfile: {
+      managed: true
+      enableAzureRBAC: true
+    }
+    apiServerAccessProfile: {
+      authorizedIPRanges: ['0.0.0.0/0']
+    }
+  }
+}
+
+resource acr 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
+  name: '\${replace(clusterName, '-', '')}acr'
+  location: location
+  tags: tags
+  sku: { name: 'Premium' }
+  properties: {
+    adminUserEnabled: false
+    dataEndpointEnabled: true
+    policies: {
+      retentionPolicy: { days: 30 status: 'enabled' }
+      trustPolicy: { type: 'Notary' status: 'enabled' }
+    }
+  }
+}
+
+// Grant AKS kubelet identity pull access to ACR
+resource acrPullRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(aks.id, acr.id, 'acrpull')
+  scope: acr
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')
+    principalId: aks.properties.identityProfile.kubeletidentity.objectId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+output aksName string = aks.name
+output acrLoginServer string = acr.properties.loginServer`,
+    ext: 'bicep'
+  },
+
+  'azure|datalake|bicep': {
+    filename: 'data-lake.bicep',
+    code: `param location string = resourceGroup().location
+param environment string = 'production'
+param adminObjectId string
+
+var prefix = 'stacklume\${environment}'
+var tags = { project: 'stacklume' environment: environment managedBy: 'bicep' }
+
+// ── ADLS Gen2 ─────────────────────────────────
+resource adls 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+  name: '\${prefix}adls'
+  location: location
+  tags: tags
+  kind: 'StorageV2'
+  sku: { name: 'Standard_ZRS' }
+  properties: {
+    isHnsEnabled: true
+    accessTier: 'Hot'
+    supportsHttpsTrafficOnly: true
+    minimumTlsVersion: 'TLS1_2'
+    allowBlobPublicAccess: false
+    networkAcls: {
+      defaultAction: 'Deny'
+      bypass: 'AzureServices'
+    }
+    encryption: {
+      services: {
+        blob: { enabled: true keyType: 'Account' }
+        file: { enabled: true keyType: 'Account' }
+      }
+      keySource: 'Microsoft.Storage'
+    }
+  }
+}
+
+resource rawContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {
+  name: '\${adls.name}/default/raw'
+  properties: { publicAccess: 'None' }
+}
+
+resource curatedContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-01-01' = {
+  name: '\${adls.name}/default/curated'
+  properties: { publicAccess: 'None' }
+}
+
+// ── Azure Data Factory ─────────────────────────
+resource adf 'Microsoft.DataFactory/factories@2018-06-01' = {
+  name: '\${prefix}-adf'
+  location: location
+  tags: tags
+  identity: { type: 'SystemAssigned' }
+  properties: {
+    globalParameters: {
+      environment: { type: 'String' value: environment }
+    }
+  }
+}
+
+// ── Synapse Analytics ─────────────────────────
+resource synapseWs 'Microsoft.Synapse/workspaces@2021-06-01' = {
+  name: '\${prefix}-synapse'
+  location: location
+  tags: tags
+  identity: { type: 'SystemAssigned' }
+  properties: {
+    defaultDataLakeStorage: {
+      accountUrl: adls.properties.primaryEndpoints.dfs
+      filesystem: 'curated'
+    }
+    sqlAdministratorLogin: 'synapseadmin'
+    sqlAdministratorLoginPassword: '\${uniqueString(resourceGroup().id)}Aa1!'
+    managedVirtualNetwork: 'default'
+    managedResourceGroupName: '\${prefix}-synapse-managed'
+  }
+}
+
+resource synapseFirewall 'Microsoft.Synapse/workspaces/firewallRules@2021-06-01' = {
+  parent: synapseWs
+  name: 'AllowAzureServices'
+  properties: { startIpAddress: '0.0.0.0' endIpAddress: '0.0.0.0' }
+}
+
+resource synapsePool 'Microsoft.Synapse/workspaces/sqlPools@2021-06-01' = {
+  parent: synapseWs
+  name: 'mainpool'
+  location: location
+  tags: tags
+  sku: { name: 'DW100c' }
+  properties: { collation: 'SQL_Latin1_General_CP1_CI_AS' }
+}
+
+// ── Key Vault ─────────────────────────────────
+resource kv 'Microsoft.KeyVault/vaults@2023-02-01' = {
+  name: '\${prefix}-kv'
+  location: location
+  tags: tags
+  properties: {
+    sku: { family: 'A' name: 'standard' }
+    tenantId: subscription().tenantId
+    enableRbacAuthorization: true
+    enableSoftDelete: true
+    softDeleteRetentionInDays: 90
+    enablePurgeProtection: true
+    networkAcls: { defaultAction: 'Deny' bypass: 'AzureServices' }
+  }
+}
+
+// ── Role assignments ───────────────────────────
+resource adlsOwner 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(adls.id, adminObjectId, 'storageblobowner')
+  scope: adls
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b')
+    principalId: adminObjectId
+    principalType: 'User'
+  }
+}
+
+output adlsEndpoint string = adls.properties.primaryEndpoints.dfs
+output synapseEndpoint string = synapseWs.properties.connectivityEndpoints.sql`,
+    ext: 'bicep'
+  },
+
+  'azure|webapp|bicep': {
+    filename: 'webapp.bicep',
+    code: `param location string = resourceGroup().location
+param environment string = 'production'
+param appServicePlanSku string = 'P2v3'
+
+var tags = { project: 'stacklume' environment: environment managedBy: 'bicep' }
+var prefix = 'stacklume-\${environment}'
+
+resource appServicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {
+  name: '\${prefix}-plan'
+  location: location
+  tags: tags
+  kind: 'linux'
+  sku: { name: appServicePlanSku tier: 'PremiumV3' capacity: 2 }
+  properties: { reserved: true }
+}
+
+resource webApp 'Microsoft.Web/sites@2022-09-01' = {
+  name: '\${prefix}-app'
+  location: location
+  tags: tags
+  identity: { type: 'SystemAssigned' }
+  properties: {
+    serverFarmId: appServicePlan.id
+    httpsOnly: true
+    siteConfig: {
+      linuxFxVersion: 'NODE|20-lts'
+      minTlsVersion: '1.2'
+      http20Enabled: true
+      healthCheckPath: '/healthz'
+      alwaysOn: true
+      ipSecurityRestrictions: [
+        { ipAddress: '0.0.0.0/0' action: 'Allow' priority: 100 name: 'AllowAll' }
+      ]
+    }
+  }
+}
+
+resource sqlServer 'Microsoft.Sql/servers@2022-11-01-preview' = {
+  name: '\${prefix}-sql'
+  location: location
+  tags: tags
+  identity: { type: 'SystemAssigned' }
+  properties: {
+    administratorLogin: 'sqladmin'
+    minimalTlsVersion: '1.2'
+    publicNetworkAccess: 'Disabled'
+  }
+}
+
+resource sqlDb 'Microsoft.Sql/servers/databases@2022-11-01-preview' = {
+  parent: sqlServer
+  name: 'stacklume'
+  location: location
+  tags: tags
+  sku: { name: 'GP_Gen5_2' tier: 'GeneralPurpose' }
+  properties: {
+    collation: 'SQL_Latin1_General_CP1_CI_AS'
+    zoneRedundant: true
+    backupStorageRedundancy: 'Zone'
+    requestedBackupStorageRedundancy: 'Zone'
+  }
+}
+
+resource cdn 'Microsoft.Cdn/profiles@2023-05-01' = {
+  name: '\${prefix}-cdn'
+  location: 'global'
+  tags: tags
+  sku: { name: 'Standard_Microsoft' }
+}
+
+output webAppUrl string = 'https://\${webApp.properties.defaultHostName}'
+output sqlServerFqdn string = sqlServer.properties.fullyQualifiedDomainName`,
+    ext: 'bicep'
+  },
+
+  'azure|webapp|terraform': {
+    filename: 'main.tf',
+    code: `provider "azurerm" {
+  features {
+    key_vault { purge_soft_delete_on_destroy    = false }
+    resource_group { prevent_deletion_if_contains_resources = true }
+  }
+}
+
+variable "location"    { default = "East US 2" }
+variable "environment" { default = "production" }
+
+resource "azurerm_resource_group" "rg" {
+  name     = "stacklume-\${var.environment}-rg"
+  location = var.location
+  tags     = { project = "stacklume" environment = var.environment managed_by = "terraform" }
+}
+
+resource "azurerm_service_plan" "plan" {
+  name                = "stacklume-\${var.environment}-plan"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  os_type             = "Linux"
+  sku_name            = "P2v3"
+}
+
+resource "azurerm_linux_web_app" "app" {
+  name                = "stacklume-\${var.environment}-app"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_service_plan.plan.location
+  service_plan_id     = azurerm_service_plan.plan.id
+  https_only          = true
+  site_config {
+    always_on        = true
+    health_check_path = "/healthz"
+    minimum_tls_version = "1.2"
+    application_stack { node_version = "20-lts" }
+  }
+  identity { type = "SystemAssigned" }
+}
+
+resource "azurerm_mssql_server" "sql" {
+  name                         = "stacklume-\${var.environment}-sql"
+  resource_group_name          = azurerm_resource_group.rg.name
+  location                     = azurerm_resource_group.rg.location
+  version                      = "12.0"
+  administrator_login          = "sqladmin"
+  administrator_login_password = var.sql_password
+  minimum_tls_version          = "1.2"
+  public_network_access_enabled = false
+  azuread_administrator {
+    login_username = "AzureAD Admin"
+    object_id      = var.admin_object_id
+  }
+}
+
+resource "azurerm_mssql_database" "db" {
+  name         = "stacklume"
+  server_id    = azurerm_mssql_server.sql.id
+  sku_name     = "GP_Gen5_2"
+  zone_redundant = true
+}
+
+variable "sql_password"    { sensitive = true }
+variable "admin_object_id" {}`,
+    ext: 'tf'
+  },
+
+  // Fallback
+  'aws|k8s|cloudformation': {
+    filename: 'eks-cluster.yaml',
+    code: `AWSTemplateFormatVersion: '2010-09-09'
+Description: Stack Lume — EKS Kubernetes Cluster
+
+Parameters:
+  ClusterName: { Type: String, Default: stacklume-eks }
+  KubernetesVersion: { Type: String, Default: '1.28' }
+  NodeInstanceType: { Type: String, Default: m5.xlarge }
+  DesiredCapacity: { Type: Number, Default: 3 }
+
+Resources:
+  EKSClusterRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal: { Service: eks.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+
+  EKSCluster:
+    Type: AWS::EKS::Cluster
+    Properties:
+      Name: !Ref ClusterName
+      Version: !Ref KubernetesVersion
+      RoleArn: !GetAtt EKSClusterRole.Arn
+      ResourcesVpcConfig:
+        SubnetIds: [!Ref PrivateSubnet1, !Ref PrivateSubnet2]
+        EndpointPrivateAccess: true
+        EndpointPublicAccess: true
+        PublicAccessCidrs: ['0.0.0.0/0']
+      Logging:
+        ClusterLogging:
+          EnabledTypes:
+            - { Type: api }
+            - { Type: audit }
+            - { Type: authenticator }
+
+  NodeGroupRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal: { Service: ec2.amazonaws.com }
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+
+  NodeGroup:
+    Type: AWS::EKS::Nodegroup
+    Properties:
+      ClusterName: !Ref EKSCluster
+      NodegroupName: stacklume-nodes
+      NodeRole: !GetAtt NodeGroupRole.Arn
+      InstanceTypes: [!Ref NodeInstanceType]
+      ScalingConfig:
+        DesiredSize: !Ref DesiredCapacity
+        MinSize: 2
+        MaxSize: 10
+      SubnetIds: [!Ref PrivateSubnet1, !Ref PrivateSubnet2]
+      UpdateConfig: { MaxUnavailable: 1 }
+      Labels: { role: workload environment: production }
+
+Outputs:
+  ClusterArn: { Value: !GetAtt EKSCluster.Arn }
+  ClusterEndpoint: { Value: !GetAtt EKSCluster.Endpoint }`,
+    ext: 'yaml'
+  }
+};
+
+function getIacTemplate(cloud, pattern, fmt) {
+  const key = cloud + '|' + pattern + '|' + fmt;
+  if (IAC_TEMPLATES[key]) return IAC_TEMPLATES[key];
+  // Fallback: try terraform variant
+  const tfKey = cloud + '|' + pattern + '|terraform';
+  if (IAC_TEMPLATES[tfKey]) return IAC_TEMPLATES[tfKey];
+  // Last resort: pick any matching cloud
+  const anyKey = Object.keys(IAC_TEMPLATES).find(k => k.startsWith(cloud + '|'));
+  return anyKey ? IAC_TEMPLATES[anyKey] : IAC_TEMPLATES['aws|webapp|cloudformation'];
+}
+
+/* ── Syntax highlighter ── */
+function highlightLine(line, fmt) {
+  if (!line.trim()) return '<code> </code>';
+  const esc = escHtml(line);
+
+  if (fmt === 'terraform' || fmt === 'deploymentmanager') {
+    return '<code>' + esc
+      .replace(/^(\s*)(#.*)$/, '$1<span class="t-cmt">$2</span>')
+      .replace(/\b(resource|provider|variable|output|module|data|locals|terraform|required_providers|backend)\b/g, '<span class="t-kw">$1</span>')
+      .replace(/"([^"]*)"(\s*=)/g, '<span class="t-fn">"$1"</span>$2')
+      .replace(/=\s*"([^"]*)"/g, '= <span class="t-str">"$1"</span>')
+      .replace(/\b(\d+)\b/g, '<span class="t-num">$1</span>')
+      .replace(/(\{|\})/g, '<span class="t-op">$1</span>')
+      + '</code>';
+  }
+  if (fmt === 'cloudformation') {
+    return '<code>' + esc
+      .replace(/^(\s*)(#.*)$/, '$1<span class="t-cmt">$2</span>')
+      .replace(/^(\s*)([A-Za-z][A-Za-z0-9_]*)(:)/gm, '$1<span class="t-fn">$2</span>$3')
+      .replace(/(!Ref|!Sub|!GetAtt|!Select|!GetAZs|!Join|!If)\b/g, '<span class="t-kw">$1</span>')
+      .replace(/:\s*'([^']*)'/g, ': <span class="t-str">\'$1\'</span>')
+      .replace(/\b(true|false)\b/g, '<span class="t-num">$1</span>')
+      + '</code>';
+  }
+  if (fmt === 'bicep') {
+    return '<code>' + esc
+      .replace(/^(\s*)(\/\/.*)$/, '$1<span class="t-cmt">$2</span>')
+      .replace(/\b(param|var|resource|output|module|existing|import|type)\b/g, '<span class="t-kw">$1</span>')
+      .replace(/'([^']*)'/g, '<span class="t-str">\'$1\'</span>')
+      .replace(/\b(\d+)\b/g, '<span class="t-num">$1</span>')
+      .replace(/(\{|\})/g, '<span class="t-op">$1</span>')
+      + '</code>';
+  }
+  return '<code>' + esc + '</code>';
+}
+
+/* ── Arch diagram nodes config ── */
+const ARCH_DIAGRAMS = {
+  'aws|webapp': [
+    { row: [{ icon: 'bi-shield-check', label: 'WAF / Shield', color: 'text-amber-400' }, { icon: 'bi-globe', label: 'Route 53', color: 'text-blue-400' }] },
+    { row: [{ icon: 'bi-distribute-horizontal', label: 'ALB', color: 'text-violet-400' }] },
+    { row: [{ icon: 'bi-boxes', label: 'ECS Fargate', color: 'text-blue-400' }, { icon: 'bi-box-seam', label: 'Auto Scaling', color: 'text-cyan-400' }] },
+    { row: [{ icon: 'bi-database-fill', label: 'RDS Postgres', color: 'text-green-400' }, { icon: 'bi-archive-fill', label: 'S3 Assets', color: 'text-amber-400' }, { icon: 'bi-lightning-fill', label: 'ElastiCache', color: 'text-red-400' }] },
+    { row: [{ icon: 'bi-key-fill', label: 'KMS / IAM', color: 'text-violet-400' }, { icon: 'bi-activity', label: 'CloudWatch', color: 'text-blue-400' }] }
+  ],
+  'aws|serverless': [
+    { row: [{ icon: 'bi-globe', label: 'Route 53', color: 'text-blue-400' }, { icon: 'bi-shield-check', label: 'WAF', color: 'text-amber-400' }] },
+    { row: [{ icon: 'bi-diagram-2', label: 'API Gateway', color: 'text-violet-400' }] },
+    { row: [{ icon: 'bi-lightning-charge-fill', label: 'Lambda', color: 'text-amber-400' }, { icon: 'bi-lightning-charge-fill', label: 'Lambda Auth', color: 'text-cyan-400' }] },
+    { row: [{ icon: 'bi-table', label: 'DynamoDB', color: 'text-blue-400' }, { icon: 'bi-archive-fill', label: 'S3', color: 'text-green-400' }, { icon: 'bi-people-fill', label: 'Cognito', color: 'text-violet-400' }] },
+    { row: [{ icon: 'bi-activity', label: 'CloudWatch', color: 'text-blue-400' }, { icon: 'bi-eye-fill', label: 'X-Ray', color: 'text-amber-400' }] }
+  ],
+  'aws|k8s': [
+    { row: [{ icon: 'bi-distribute-horizontal', label: 'ALB Ingress', color: 'text-violet-400' }] },
+    { row: [{ icon: 'bi-hexagon-fill', label: 'EKS Control Plane', color: 'text-amber-400' }] },
+    { row: [{ icon: 'bi-server', label: 'Node Group (m5.xl)', color: 'text-blue-400' }, { icon: 'bi-server', label: 'Node Group (spot)', color: 'text-cyan-400' }] },
+    { row: [{ icon: 'bi-database-fill', label: 'RDS', color: 'text-green-400' }, { icon: 'bi-archive-fill', label: 'S3', color: 'text-amber-400' }] },
+    { row: [{ icon: 'bi-key-fill', label: 'IAM OIDC', color: 'text-violet-400' }, { icon: 'bi-activity', label: 'CloudWatch', color: 'text-blue-400' }] }
+  ],
+  'gcp|webapp': [
+    { row: [{ icon: 'bi-globe', label: 'Cloud DNS', color: 'text-blue-400' }, { icon: 'bi-shield-check', label: 'Cloud Armor', color: 'text-amber-400' }] },
+    { row: [{ icon: 'bi-distribute-horizontal', label: 'Global HTTPS LB', color: 'text-violet-400' }] },
+    { row: [{ icon: 'bi-server', label: 'Compute MIG', color: 'text-blue-400' }, { icon: 'bi-boxes', label: 'Cloud Run', color: 'text-cyan-400' }] },
+    { row: [{ icon: 'bi-database-fill', label: 'Cloud SQL PG15', color: 'text-green-400' }, { icon: 'bi-archive-fill', label: 'GCS Bucket', color: 'text-amber-400' }] },
+    { row: [{ icon: 'bi-key-fill', label: 'Cloud KMS', color: 'text-violet-400' }, { icon: 'bi-activity', label: 'Cloud Monitoring', color: 'text-blue-400' }] }
+  ],
+  'gcp|ml': [
+    { row: [{ icon: 'bi-cloud-upload', label: 'Training Data (GCS)', color: 'text-blue-400' }] },
+    { row: [{ icon: 'bi-cpu-fill', label: 'Vertex AI Training', color: 'text-violet-400' }, { icon: 'bi-diagram-3', label: 'Vertex Pipelines', color: 'text-cyan-400' }] },
+    { row: [{ icon: 'bi-graph-up', label: 'Vertex Feature Store', color: 'text-amber-400' }, { icon: 'bi-archive-fill', label: 'Model Artifacts (GCS)', color: 'text-green-400' }] },
+    { row: [{ icon: 'bi-table', label: 'BigQuery', color: 'text-blue-400' }, { icon: 'bi-eye-fill', label: 'Vertex Explainability', color: 'text-violet-400' }] },
+    { row: [{ icon: 'bi-key-fill', label: 'Cloud KMS', color: 'text-violet-400' }, { icon: 'bi-activity', label: 'Cloud Monitoring', color: 'text-blue-400' }] }
+  ],
+  'gcp|serverless': [
+    { row: [{ icon: 'bi-globe', label: 'Cloud DNS', color: 'text-blue-400' }] },
+    { row: [{ icon: 'bi-boxes', label: 'Cloud Run', color: 'text-cyan-400' }, { icon: 'bi-diagram-2', label: 'API Gateway', color: 'text-violet-400' }] },
+    { row: [{ icon: 'bi-table', label: 'Firestore', color: 'text-blue-400' }, { icon: 'bi-broadcast', label: 'Pub/Sub', color: 'text-amber-400' }] },
+    { row: [{ icon: 'bi-activity', label: 'Cloud Monitoring', color: 'text-blue-400' }, { icon: 'bi-key-fill', label: 'Cloud IAM', color: 'text-violet-400' }] }
+  ],
+  'azure|k8s': [
+    { row: [{ icon: 'bi-distribute-horizontal', label: 'App Gateway Ingress', color: 'text-violet-400' }] },
+    { row: [{ icon: 'bi-hexagon-fill', label: 'AKS Cluster', color: 'text-cyan-400' }] },
+    { row: [{ icon: 'bi-server', label: 'System Node Pool', color: 'text-blue-400' }, { icon: 'bi-server', label: 'Workload Node Pool', color: 'text-amber-400' }] },
+    { row: [{ icon: 'bi-box-seam', label: 'Azure Container Registry', color: 'text-cyan-400' }, { icon: 'bi-key-fill', label: 'Key Vault', color: 'text-violet-400' }] },
+    { row: [{ icon: 'bi-activity', label: 'Log Analytics', color: 'text-blue-400' }, { icon: 'bi-shield-check', label: 'Azure Policy', color: 'text-amber-400' }] }
+  ],
+  'azure|datalake': [
+    { row: [{ icon: 'bi-cloud-upload', label: 'Data Sources', color: 'text-blue-400' }] },
+    { row: [{ icon: 'bi-arrow-repeat', label: 'Azure Data Factory', color: 'text-amber-400' }] },
+    { row: [{ icon: 'bi-archive-fill', label: 'ADLS Gen2 Raw', color: 'text-blue-400' }, { icon: 'bi-archive-fill', label: 'ADLS Gen2 Curated', color: 'text-green-400' }] },
+    { row: [{ icon: 'bi-database-fill', label: 'Synapse Analytics', color: 'text-violet-400' }, { icon: 'bi-graph-up', label: 'Synapse SQL Pool', color: 'text-cyan-400' }] },
+    { row: [{ icon: 'bi-key-fill', label: 'Key Vault', color: 'text-violet-400' }, { icon: 'bi-activity', label: 'Azure Monitor', color: 'text-blue-400' }] }
+  ],
+  'azure|webapp': [
+    { row: [{ icon: 'bi-globe', label: 'Azure DNS + CDN', color: 'text-blue-400' }, { icon: 'bi-shield-check', label: 'WAF / Front Door', color: 'text-amber-400' }] },
+    { row: [{ icon: 'bi-distribute-horizontal', label: 'App Service Plan', color: 'text-violet-400' }] },
+    { row: [{ icon: 'bi-window', label: 'App Service (Linux)', color: 'text-cyan-400' }] },
+    { row: [{ icon: 'bi-database-fill', label: 'Azure SQL Database', color: 'text-green-400' }, { icon: 'bi-archive-fill', label: 'Blob Storage', color: 'text-amber-400' }] },
+    { row: [{ icon: 'bi-key-fill', label: 'Key Vault', color: 'text-violet-400' }, { icon: 'bi-activity', label: 'App Insights', color: 'text-blue-400' }] }
+  ],
+};
+
+function getArchDiagram(cloud, pattern) {
+  const key = cloud + '|' + pattern;
+  if (ARCH_DIAGRAMS[key]) return ARCH_DIAGRAMS[key];
+  const any = Object.keys(ARCH_DIAGRAMS).find(k => k.startsWith(cloud + '|'));
+  return any ? ARCH_DIAGRAMS[any] : ARCH_DIAGRAMS['aws|webapp'];
+}
+
+function renderArchDiagram(cloud, pattern) {
+  const rows = getArchDiagram(cloud, pattern);
+  const container = document.getElementById('arch-diagram');
+  container.innerHTML = '';
+
+  rows.forEach((rowData, rowIdx) => {
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'flex gap-3 justify-center flex-wrap';
+
+    rowData.row.forEach(node => {
+      rowDiv.insertAdjacentHTML('beforeend', `
+        <div class="arch-node bg-lume-bg rounded-xl px-4 py-3 flex flex-col items-center gap-1.5 min-w-[100px] cursor-default">
+          <i class="bi ${node.icon} text-xl ${node.color}"></i>
+          <span class="text-[0.72rem] text-[#9896b8] text-center leading-tight">${escHtml(node.label)}</span>
+        </div>`);
+    });
+
+    container.appendChild(rowDiv);
+
+    // Arrow between rows
+    if (rowIdx < rows.length - 1) {
+      const arrowDiv = document.createElement('div');
+      arrowDiv.className = 'arch-arrow h-6';
+      container.appendChild(arrowDiv);
+    }
+  });
+}
+
+function generateIac() {
+  const pattern = document.getElementById('arch-pattern').value;
+  const tpl = getIacTemplate(iacCloud, pattern, iacFormat);
+
+  // Update filename badge
+  document.getElementById('iac-filename').textContent = tpl.filename;
+  iacCode = tpl.code;
+
+  // Render code with line numbers
+  const lines = tpl.code.split('\n');
+  const codeEl = document.getElementById('iac-code');
+  codeEl.innerHTML = '';
+  lines.forEach(line => {
+    const lineDiv = document.createElement('div');
+    lineDiv.className = 'iac-line';
+    lineDiv.innerHTML = highlightLine(line, iacFormat);
+    codeEl.appendChild(lineDiv);
+  });
+
+  // Render diagram
+  renderArchDiagram(iacCloud, pattern);
+
+  // Show output
+  document.getElementById('iac-placeholder').classList.add('hidden');
+  document.getElementById('iac-output').classList.remove('hidden');
+  document.getElementById('iac-output').classList.add('grid');
+}
+
+/* ── Copy / Download ── */
+function copyIacCode() {
+  const text = iacCode;
+  if (!text) return;
+  const doFallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+  };
+  const btn = document.getElementById('copy-btn');
+  const icon = document.getElementById('copy-icon');
+  const finish = () => {
+    icon.className = 'bi bi-clipboard-check text-green-400';
+    btn.classList.add('copy-flash');
+    setTimeout(() => { icon.className = 'bi bi-clipboard'; btn.classList.remove('copy-flash'); }, 1800);
+  };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(finish).catch(doFallback);
+  } else {
+    doFallback();
+    finish();
+  }
+}
+
+function downloadIacCode() {
+  if (!iacCode) return;
+  const tpl = getIacTemplate(iacCloud, document.getElementById('arch-pattern').value, iacFormat);
+  const blob = new Blob([iacCode], { type: 'text/plain' });
+  const url  = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = tpl.filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ── Init ── */
+updateFormatOptions();
+</script>
+</body>
+</html>
