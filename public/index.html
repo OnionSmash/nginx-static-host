@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stacklume — Enterprise AI Platform</title>
+  <style>
+    /* ── Reset & Base ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      background: #080818;
+      color: #E2E8F0;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── Theme: Cosmic Purple ─────────────────────────────── */
+    :root {
+      --g1: #7C3AED;
+      --g2: #06B6D4;
+      --g3: #A855F7;
+      --bg: #080818;
+      --bg-card: rgba(124, 58, 237, 0.08);
+      --bg-card-border: rgba(124, 58, 237, 0.25);
+      --accent: #06B6D4;
+      --text-primary: #F8FAFC;
+      --text-muted: #94A3B8;
+      --nav-bg: rgba(8, 8, 24, 0.85);
+    }
+
+    /* ── Ambient Glow ─────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 10% 10%, rgba(124,58,237,0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 90% 80%, rgba(6,182,212,0.12) 0%, transparent 60%);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── Theme Switcher Bar ───────────────────────────────── */
+    .theme-bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; justify-content: flex-end; align-items: center;
+      gap: 8px; padding: 6px 24px;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 11px; color: var(--text-muted);
+    }
+    .theme-bar span { margin-right: 4px; }
+    .theme-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 600;
+      text-decoration: none; border: 1px solid rgba(255,255,255,0.12);
+      color: #E2E8F0; transition: all 0.2s ease; cursor: pointer;
+    }
+    .theme-pill.active, .theme-pill:hover { border-color: var(--accent); color: #fff; }
+    .tp1 { background: linear-gradient(135deg, #7C3AED22, #06B6D422); }
+    .tp2 { background: linear-gradient(135deg, #1E3A8A22, #F59E0B22); }
+    .tp3 { background: linear-gradient(135deg, #9333EA22, #EC489922); }
+    .tp4 { background: linear-gradient(135deg, #0EA5E922, #10B98122); }
+    .tp1.active { background: linear-gradient(135deg, #7C3AED55, #06B6D455); border-color: #7C3AED; }
+
+    /* ── Navigation ───────────────────────────────────────── */
+    nav {
+      position: sticky; top: 28px; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 40px; height: 68px;
+      background: var(--nav-bg); backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none; color: var(--text-primary);
+    }
+    .logo-mark {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--g1), var(--g2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 20px rgba(124,58,237,0.4);
+    }
+    .logo-mark svg { width: 20px; height: 20px; fill: #fff; }
+    .logo-text { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+    .logo-text span { background: linear-gradient(90deg, var(--g1), var(--g2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    .nav-links { display: flex; align-items: center; gap: 6px; }
+    .nav-item { position: relative; }
+    .nav-btn {
+      display: flex; align-items: center; gap: 5px;
+      padding: 8px 16px; border-radius: 999px;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-muted); font-size: 14px; font-weight: 500;
+      cursor: pointer; transition: all 0.2s; white-space: nowrap;
+      text-decoration: none;
+    }
+    .nav-btn:hover, .nav-btn.open {
+      background: rgba(124,58,237,0.15); border-color: rgba(124,58,237,0.4);
+      color: var(--text-primary);
+    }
+    .nav-btn .arrow {
+      width: 14px; height: 14px; transition: transform 0.2s;
+      opacity: 0.6;
+    }
+    .nav-btn.open .arrow { transform: rotate(180deg); }
+
+    .dropdown {
+      position: absolute; top: calc(100% + 10px); left: 50%;
+      transform: translateX(-50%) translateY(-6px);
+      min-width: 220px; padding: 8px;
+      background: rgba(12,12,30,0.95); backdrop-filter: blur(24px);
+      border: 1px solid rgba(124,58,237,0.25); border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(124,58,237,0.1);
+      opacity: 0; pointer-events: none;
+      transition: all 0.2s cubic-bezier(0.16,1,0.3,1);
+      z-index: 50;
+    }
+    .nav-item:hover .dropdown, .nav-item:focus-within .dropdown {
+      opacity: 1; pointer-events: all; transform: translateX(-50%) translateY(0);
+    }
+    .dd-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 10px 12px; border-radius: 10px; text-decoration: none;
+      color: var(--text-muted); transition: all 0.15s;
+    }
+    .dd-item:hover { background: rgba(124,58,237,0.15); color: var(--text-primary); }
+    .dd-icon {
+      width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(124,58,237,0.2); font-size: 16px;
+    }
+    .dd-label { font-size: 13px; font-weight: 600; color: var(--text-primary); line-height: 1.2; }
+    .dd-desc { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+
+    .nav-cta {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .btn-ghost {
+      padding: 8px 18px; border-radius: 999px;
+      background: transparent; border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text-muted); font-size: 14px; font-weight: 500;
+      cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+    .btn-ghost:hover { border-color: rgba(255,255,255,0.3); color: var(--text-primary); }
+    .btn-primary {
+      padding: 8px 20px; border-radius: 999px;
+      background: linear-gradient(135deg, var(--g1), var(--g2));
+      border: none; color: #fff; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; text-decoration: none;
+      box-shadow: 0 4px 20px rgba(124,58,237,0.35);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(124,58,237,0.5); }
+
+    /* ── Hero ─────────────────────────────────────────────── */
+    .hero {
+      position: relative; z-index: 1;
+      padding: 100px 40px 80px;
+      text-align: center; max-width: 900px; margin: 0 auto;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 16px; border-radius: 999px; margin-bottom: 28px;
+      background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.3);
+      font-size: 13px; color: var(--accent); font-weight: 500;
+    }
+    .hero-badge::before {
+      content: '';
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent); box-shadow: 0 0 6px var(--accent);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+    .hero h1 {
+      font-size: clamp(40px, 6vw, 72px); font-weight: 900;
+      letter-spacing: -2px; line-height: 1.05; margin-bottom: 24px;
+      color: var(--text-primary);
+    }
+    .hero h1 .grad {
+      background: linear-gradient(90deg, var(--g1), var(--g2), var(--g3));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero p {
+      font-size: 18px; color: var(--text-muted); max-width: 580px;
+      margin: 0 auto 40px; line-height: 1.7;
+    }
+    .hero-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .btn-lg {
+      padding: 14px 32px; border-radius: 999px; font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: all 0.25s; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-lg-primary {
+      background: linear-gradient(135deg, var(--g1), var(--g2));
+      color: #fff; border: none;
+      box-shadow: 0 6px 30px rgba(124,58,237,0.4);
+    }
+    .btn-lg-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(124,58,237,0.55); }
+    .btn-lg-ghost {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.12); color: var(--text-primary);
+    }
+    .btn-lg-ghost:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.22); }
+
+    /* Hero visual */
+    .hero-visual {
+      position: relative; margin: 60px auto 0;
+      width: 100%; max-width: 860px;
+      height: 340px; border-radius: 20px;
+      background: rgba(124,58,237,0.06);
+      border: 1px solid rgba(124,58,237,0.2);
+      overflow: hidden;
+      box-shadow: 0 0 80px rgba(124,58,237,0.15), inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+    .hero-visual::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg,
+        rgba(124,58,237,0.1) 0%,
+        rgba(6,182,212,0.06) 50%,
+        rgba(168,85,247,0.08) 100%);
+    }
+    .hero-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(124,58,237,0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,58,237,0.08) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .hero-orb {
+      position: absolute; border-radius: 50%;
+      filter: blur(60px); animation: float 8s ease-in-out infinite;
+    }
+    .orb1 { width: 200px; height: 200px; background: rgba(124,58,237,0.25); top: -40px; left: 10%; }
+    .orb2 { width: 160px; height: 160px; background: rgba(6,182,212,0.2); bottom: -30px; right: 15%; animation-delay: -3s; }
+    .orb3 { width: 120px; height: 120px; background: rgba(168,85,247,0.18); top: 30%; left: 50%; animation-delay: -5s; }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+
+    .hero-dashboard {
+      position: absolute; top: 30px; left: 50%; transform: translateX(-50%);
+      width: 90%; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+    }
+    .dash-card {
+      background: rgba(8,8,24,0.8); border: 1px solid rgba(124,58,237,0.2);
+      border-radius: 12px; padding: 16px; backdrop-filter: blur(10px);
+    }
+    .dash-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+    .dash-value { font-size: 22px; font-weight: 800; margin-top: 4px; background: linear-gradient(90deg, var(--g1), var(--g2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .dash-sub { font-size: 10px; color: #10B981; margin-top: 2px; }
+
+    /* ── Trusted By ───────────────────────────────────────── */
+    .trusted {
+      position: relative; z-index: 1;
+      padding: 48px 40px; text-align: center;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .trusted p { font-size: 13px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 28px; }
+    .trusted-logos { display: flex; justify-content: center; align-items: center; gap: 48px; flex-wrap: wrap; }
+    .logo-badge {
+      font-size: 15px; font-weight: 700; color: rgba(255,255,255,0.25);
+      letter-spacing: -0.5px; transition: color 0.2s;
+    }
+    .logo-badge:hover { color: rgba(255,255,255,0.5); }
+
+    /* ── Section ──────────────────────────────────────────── */
+    section {
+      position: relative; z-index: 1;
+      padding: 80px 40px;
+    }
+    .section-label {
+      text-align: center; font-size: 12px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 16px;
+    }
+    .section-title {
+      text-align: center; font-size: clamp(28px, 4vw, 48px); font-weight: 800;
+      letter-spacing: -1px; line-height: 1.1; margin-bottom: 16px; color: var(--text-primary);
+    }
+    .section-sub {
+      text-align: center; font-size: 16px; color: var(--text-muted);
+      max-width: 520px; margin: 0 auto 56px; line-height: 1.7;
+    }
+
+    /* ── Feature Cards ────────────────────────────────────── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px; max-width: 1100px; margin: 0 auto;
+    }
+    .card {
+      position: relative;
+      background: var(--bg-card);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 20px; padding: 28px;
+      transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+      overflow: hidden; cursor: default;
+    }
+    .card::before {
+      content: '';
+      position: absolute; inset: 0; border-radius: 20px;
+      background: linear-gradient(135deg, rgba(124,58,237,0.12) 0%, transparent 60%);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .card::after {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(124,58,237,0.5), transparent);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(124,58,237,0.5);
+      box-shadow: 0 20px 60px rgba(124,58,237,0.2), 0 0 0 1px rgba(124,58,237,0.15);
+    }
+    .card:hover::before { opacity: 1; }
+    .card:hover::after { opacity: 1; }
+
+    .card-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; margin-bottom: 18px;
+      background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(6,182,212,0.15));
+      border: 1px solid rgba(124,58,237,0.25);
+      transition: all 0.3s;
+    }
+    .card:hover .card-icon {
+      background: linear-gradient(135deg, rgba(124,58,237,0.35), rgba(6,182,212,0.25));
+      box-shadow: 0 0 20px rgba(124,58,237,0.3);
+    }
+    .card h3 { font-size: 17px; font-weight: 700; margin-bottom: 10px; color: var(--text-primary); }
+    .card p { font-size: 14px; color: var(--text-muted); line-height: 1.65; }
+    .card-tag {
+      display: inline-flex; margin-top: 16px;
+      padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600;
+      background: rgba(6,182,212,0.1); border: 1px solid rgba(6,182,212,0.25); color: var(--accent);
+    }
+
+    /* ── Stats Strip ──────────────────────────────────────── */
+    .stats {
+      padding: 60px 40px;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 40px; max-width: 900px; margin: 0 auto; text-align: center;
+    }
+    .stat-value {
+      font-size: 44px; font-weight: 900; letter-spacing: -2px; line-height: 1;
+      background: linear-gradient(90deg, var(--g1), var(--g2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .stat-label { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
+
+    /* ── How It Works ─────────────────────────────────────── */
+    .steps-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px; max-width: 1000px; margin: 0 auto;
+    }
+    .step-card {
+      position: relative;
+      background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 20px; padding: 28px;
+      transition: all 0.3s;
+    }
+    .step-card:hover {
+      background: rgba(124,58,237,0.06); border-color: rgba(124,58,237,0.25);
+      transform: translateY(-4px);
+    }
+    .step-num {
+      font-size: 11px; font-weight: 700; letter-spacing: 1px;
+      color: var(--accent); margin-bottom: 16px;
+    }
+    .step-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 10px; }
+    .step-card p { font-size: 13px; color: var(--text-muted); }
+
+    /* ── Testimonials ─────────────────────────────────────── */
+    .testimonials-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px; max-width: 1000px; margin: 0 auto;
+    }
+    .testimonial {
+      background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 20px; padding: 28px;
+      transition: all 0.3s;
+    }
+    .testimonial:hover {
+      border-color: rgba(124,58,237,0.25);
+      box-shadow: 0 10px 40px rgba(124,58,237,0.1);
+    }
+    .stars { color: #F59E0B; font-size: 14px; margin-bottom: 14px; }
+    .testimonial blockquote { font-size: 14px; line-height: 1.7; color: var(--text-muted); font-style: italic; }
+    .testimonial-author {
+      display: flex; align-items: center; gap: 12px; margin-top: 20px;
+    }
+    .avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--g1), var(--g2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: #fff;
+    }
+    .author-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .author-role { font-size: 11px; color: var(--text-muted); }
+
+    /* ── CTA ──────────────────────────────────────────────── */
+    .cta-section {
+      padding: 80px 40px; text-align: center;
+    }
+    .cta-box {
+      max-width: 700px; margin: 0 auto;
+      background: linear-gradient(135deg, rgba(124,58,237,0.12), rgba(6,182,212,0.08));
+      border: 1px solid rgba(124,58,237,0.25); border-radius: 28px;
+      padding: 60px 40px;
+      box-shadow: 0 0 80px rgba(124,58,237,0.1);
+    }
+    .cta-box h2 { font-size: clamp(26px, 4vw, 42px); font-weight: 800; letter-spacing: -1px; margin-bottom: 14px; }
+    .cta-box p { font-size: 16px; color: var(--text-muted); margin-bottom: 32px; }
+    .cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    /* ── Footer ───────────────────────────────────────────── */
+    footer {
+      position: relative; z-index: 1;
+      padding: 56px 40px 32px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .footer-grid {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 40px; max-width: 1100px; margin: 0 auto 48px;
+    }
+    .footer-brand p { font-size: 13px; color: var(--text-muted); margin-top: 12px; line-height: 1.6; max-width: 240px; }
+    .footer-col h4 { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px; }
+    .footer-col a {
+      display: block; font-size: 13px; color: var(--text-muted);
+      text-decoration: none; margin-bottom: 10px; transition: color 0.2s;
+    }
+    .footer-col a:hover { color: var(--text-primary); }
+    .footer-bottom {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+      padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.05);
+      font-size: 12px; color: var(--text-muted);
+    }
+    .footer-bottom a { color: var(--text-muted); text-decoration: none; }
+    .footer-bottom a:hover { color: var(--text-primary); }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 16px; }
+      .hero { padding: 60px 20px 40px; }
+      section { padding: 60px 20px; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .theme-bar { font-size: 10px; gap: 4px; padding: 4px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Theme Switcher -->
+  <div class="theme-bar">
+    <span>Color Themes:</span>
+    <a href="index.html" class="theme-pill tp1 active">◈ Cosmic Purple</a>
+    <a href="theme-2.html" class="theme-pill tp2">◈ Enterprise Navy</a>
+    <a href="theme-3.html" class="theme-pill tp3">◈ Nebula</a>
+    <a href="theme-4.html" class="theme-pill tp4">◈ Ocean Teal</a>
+  </div>
+
+  <!-- Navigation -->
+  <nav>
+    <a href="#" class="nav-logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <span class="logo-text"><span>Stack</span>lume</span>
+    </a>
+
+    <div class="nav-links">
+      <div class="nav-item">
+        <button class="nav-btn">
+          Platform
+          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="dropdown">
+          <a class="dd-item" href="#">
+            <div class="dd-icon">🧠</div>
+            <div><div class="dd-label">AI Inference</div><div class="dd-desc">Deploy models at scale</div></div>
+          </a>
+          <a class="dd-item" href="#">
+            <div class="dd-icon">⚡</div>
+            <div><div class="dd-label">Vector Search</div><div class="dd-desc">Semantic retrieval engine</div></div>
+          </a>
+          <a class="dd-item" href="#">
+            <div class="dd-icon">🔄</div>
+            <div><div class="dd-label">Pipelines</div><div class="dd-desc">Build AI workflows</div></div>
+          </a>
+          <a class="dd-item" href="#">
+            <div class="dd-icon">📊</div>
+            <div><div class="dd-label">Analytics</div><div class="dd-desc">Usage &amp; model metrics</div></div>
+          </a>
+        </div>
+      </div>
+
+      <div class="nav-item">
+        <button class="nav-btn">
+          Solutions
+          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="dropdown">
+          <a class="dd-item" href="#">
+            <div class="dd-icon">🏢</div>
+            <div><div class="dd-label">Enterprise</div><div class="dd-desc">Secure &amp; compliant AI</div></div>
+          </a>
+          <a class="dd-item" href="#">
+            <div class="dd-icon">🚀</div>
+            <div><div class="dd-label">Startups</div><div class="dd-desc">Ship AI products fast</div></div>
+          </a>
+          <a class="dd-item" href="#">
+            <div class="dd-icon">🔬</div>
+            <div><div class="dd-label">Research</div><div class="dd-desc">Experiment at scale</div></div>
+          </a>
+        </div>
+      </div>
+
+      <div class="nav-item">
+        <button class="nav-btn">
+          Developers
+          <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="dropdown">
+          <a class="dd-item" href="api/">
+            <div class="dd-icon">📖</div>
+            <div><div class="dd-label">API Reference</div><div class="dd-desc">REST &amp; GraphQL docs</div></div>
+          </a>
+          <a class="dd-item" href="#">
+            <div class="dd-icon">💻</div>
+            <div><div class="dd-label">SDKs</div><div class="dd-desc">Python, JS, Go, Rust</div></div>
+          </a>
+          <a class="dd-item" href="demo/">
+            <div class="dd-icon">🎮</div>
+            <div><div class="dd-label">Playground</div><div class="dd-desc">Try before you build</div></div>
+          </a>
+        </div>
+      </div>
+
+      <a href="#" class="nav-btn">Pricing</a>
+      <a href="#" class="nav-btn">Blog</a>
+    </div>
+
+    <div class="nav-cta">
+      <a href="#" class="btn-ghost">Sign in</a>
+      <a href="demo/" class="btn-primary">Start free →</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge">Now in General Availability — Enterprise AI Platform</div>
+    <h1>
+      Intelligence that<br>
+      <span class="grad">scales with you</span>
+    </h1>
+    <p>Stacklume is the enterprise AI platform built for teams who need speed, control, and security. Deploy, monitor, and scale AI workloads in minutes.</p>
+    <div class="hero-btns">
+      <a href="demo/" class="btn-lg btn-lg-primary">
+        <span>Try the demo</span>
+        <span>→</span>
+      </a>
+      <a href="api/" class="btn-lg btn-lg-ghost">View API docs</a>
+    </div>
+
+    <div class="hero-visual">
+      <div class="hero-grid"></div>
+      <div class="hero-orb orb1"></div>
+      <div class="hero-orb orb2"></div>
+      <div class="hero-orb orb3"></div>
+      <div class="hero-dashboard">
+        <div class="dash-card">
+          <div class="dash-label">Models Deployed</div>
+          <div class="dash-value">2,847</div>
+          <div class="dash-sub">↑ 18% this month</div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-label">API Requests/s</div>
+          <div class="dash-value">94.2K</div>
+          <div class="dash-sub">↑ 32% this week</div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-label">Latency P99</div>
+          <div class="dash-value">48ms</div>
+          <div class="dash-sub">↓ 12% lower</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trusted By -->
+  <div class="trusted">
+    <p>Trusted by engineering teams at</p>
+    <div class="trusted-logos">
+      <span class="logo-badge">Accenture</span>
+      <span class="logo-badge">Deloitte</span>
+      <span class="logo-badge">Palantir</span>
+      <span class="logo-badge">Databricks</span>
+      <span class="logo-badge">Snowflake</span>
+      <span class="logo-badge">Confluent</span>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <section>
+    <div class="section-label">Core Platform</div>
+    <h2 class="section-title">Everything you need to build with AI</h2>
+    <p class="section-sub">From inference to evaluation, Stacklume gives your team the full toolkit to ship AI-powered products at enterprise scale.</p>
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-icon">🧠</div>
+        <h3>Multi-Model Inference</h3>
+        <p>Run any open or proprietary model through a unified API. Switch models without changing code.</p>
+        <span class="card-tag">Core</span>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <h3>Ultra-Low Latency</h3>
+        <p>Edge-optimized inference nodes across 12 regions. Sub-50ms P99 latency globally.</p>
+        <span class="card-tag">Performance</span>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔒</div>
+        <h3>Enterprise Security</h3>
+        <p>SOC 2 Type II, HIPAA, and GDPR compliant. Private VPC deployment and bring-your-own-key.</p>
+        <span class="card-tag">Security</span>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔄</div>
+        <h3>AI Pipelines</h3>
+        <p>Chain models, tools, and data sources into production-ready workflows with visual and code-first builders.</p>
+        <span class="card-tag">Workflows</span>
+      </div>
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <h3>Observability Suite</h3>
+        <p>Real-time traces, evals, and cost tracking. Understand exactly what your AI is doing.</p>
+        <span class="card-tag">Monitoring</span>
+      </div>
+      <div class="card">
+        <div class="card-icon">🌐</div>
+        <h3>Vector Store</h3>
+        <p>Persistent, high-performance vector storage with hybrid search. Semantic + keyword retrieval.</p>
+        <span class="card-tag">Data</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stats-grid">
+      <div>
+        <div class="stat-value">99.99%</div>
+        <div class="stat-label">Uptime SLA</div>
+      </div>
+      <div>
+        <div class="stat-value">12</div>
+        <div class="stat-label">Global Regions</div>
+      </div>
+      <div>
+        <div class="stat-value">500B+</div>
+        <div class="stat-label">Tokens/month</div>
+      </div>
+      <div>
+        <div class="stat-value">3,200+</div>
+        <div class="stat-label">Enterprise Teams</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- How It Works -->
+  <section>
+    <div class="section-label">How It Works</div>
+    <h2 class="section-title">From zero to production in hours</h2>
+    <p class="section-sub">Simple steps to get your AI infrastructure running.</p>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">STEP 01</div>
+        <h3>Connect your models</h3>
+        <p>Bring your own fine-tuned models or use our curated library of SOTA models.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">STEP 02</div>
+        <h3>Configure your pipeline</h3>
+        <p>Drag-and-drop or code-first workflow builder to chain models and tools.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">STEP 03</div>
+        <h3>Deploy with one click</h3>
+        <p>Publish to a globally distributed endpoint. Auto-scales to demand.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">STEP 04</div>
+        <h3>Monitor &amp; optimize</h3>
+        <p>Real-time analytics, A/B testing, and cost optimization dashboards.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section>
+    <div class="section-label">Customer Stories</div>
+    <h2 class="section-title">Loved by AI teams worldwide</h2>
+    <p class="section-sub">See how leading organizations are using Stacklume to accelerate their AI initiatives.</p>
+    <div class="testimonials-grid">
+      <div class="testimonial">
+        <div class="stars">★★★★★</div>
+        <blockquote>"Stacklume cut our inference latency by 60% and reduced our AI infrastructure costs by 40%. The observability suite alone is worth it."</blockquote>
+        <div class="testimonial-author">
+          <div class="avatar">SK</div>
+          <div>
+            <div class="author-name">Sarah Kim</div>
+            <div class="author-role">Head of AI, TechCorp</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial">
+        <div class="stars">★★★★★</div>
+        <blockquote>"The enterprise security features gave our compliance team exactly what they needed. We went from POC to production in under two weeks."</blockquote>
+        <div class="testimonial-author">
+          <div class="avatar">MR</div>
+          <div>
+            <div class="author-name">Marcus Reid</div>
+            <div class="author-role">CTO, FinanceAI Inc.</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial">
+        <div class="stars">★★★★★</div>
+        <blockquote>"Best-in-class developer experience. The unified API made switching models effortless, and the vector store is blazingly fast."</blockquote>
+        <div class="testimonial-author">
+          <div class="avatar">AL</div>
+          <div>
+            <div class="author-name">Ana Lopez</div>
+            <div class="author-role">Principal Engineer, DataFlow</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="cta-box">
+      <h2>Ready to build the future with AI?</h2>
+      <p>Start free and scale to enterprise. No credit card required.</p>
+      <div class="cta-btns">
+        <a href="demo/" class="btn-lg btn-lg-primary">Get started free →</a>
+        <a href="#" class="btn-lg btn-lg-ghost">Talk to sales</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="#" class="nav-logo" style="margin-bottom:0">
+          <div class="logo-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <span class="logo-text"><span>Stack</span>lume</span>
+        </a>
+        <p>Enterprise AI infrastructure built for teams who ship.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Platform</h4>
+        <a href="#">AI Inference</a>
+        <a href="#">Vector Store</a>
+        <a href="#">Pipelines</a>
+        <a href="#">Analytics</a>
+        <a href="#">Security</a>
+      </div>
+      <div class="footer-col">
+        <h4>Developers</h4>
+        <a href="api/">API Reference</a>
+        <a href="#">SDKs</a>
+        <a href="demo/">Playground</a>
+        <a href="#">Changelog</a>
+        <a href="#">Status</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="#">About</a>
+        <a href="#">Blog</a>
+        <a href="#">Careers</a>
+        <a href="#">Press</a>
+        <a href="#">Contact</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 Stacklume, Inc. All rights reserved.</span>
+      <span style="display:flex;gap:16px;">
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Security</a>
+        <a href="#">Cookies</a>
+      </span>
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stacklume — Enterprise AI Platform (Theme: Nebula)</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      background: #080810;
+      color: #F0E8FF;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    :root {
+      --g1: #9333EA;
+      --g2: #EC4899;
+      --g3: #F97316;
+      --bg: #080810;
+      --bg-card: rgba(147, 51, 234, 0.07);
+      --bg-card-border: rgba(147, 51, 234, 0.22);
+      --accent: #F472B6;
+      --text-primary: #FAF0FF;
+      --text-muted: #A897C8;
+      --nav-bg: rgba(8, 8, 16, 0.88);
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 70% 55% at 0% 0%, rgba(147,51,234,0.22) 0%, transparent 55%),
+        radial-gradient(ellipse 55% 50% at 100% 100%, rgba(236,72,153,0.18) 0%, transparent 55%),
+        radial-gradient(ellipse 45% 40% at 55% 30%, rgba(249,115,22,0.06) 0%, transparent 50%);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* Theme Bar */
+    .theme-bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; justify-content: flex-end; align-items: center;
+      gap: 8px; padding: 6px 24px;
+      background: rgba(0,0,0,0.75); backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 11px; color: #A897C8;
+    }
+    .theme-bar span { margin-right: 4px; }
+    .theme-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 999px; font-size: 11px; font-weight: 600;
+      text-decoration: none; border: 1px solid rgba(255,255,255,0.1);
+      color: #E2E8F0; transition: all 0.2s;
+    }
+    .theme-pill.active, .theme-pill:hover { border-color: var(--accent); color: #fff; }
+    .tp1 { background: linear-gradient(135deg, #7C3AED22, #06B6D422); }
+    .tp2 { background: linear-gradient(135deg, #1E3A8A22, #F59E0B22); }
+    .tp3 { background: linear-gradient(135deg, #9333EA22, #EC489922); }
+    .tp4 { background: linear-gradient(135deg, #0EA5E922, #10B98122); }
+    .tp3.active { background: linear-gradient(135deg, #9333EA55, #EC489955); border-color: #EC4899; }
+
+    /* Nav */
+    nav {
+      position: sticky; top: 28px; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 40px; height: 68px;
+      background: var(--nav-bg); backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(147,51,234,0.15);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text-primary); }
+    .logo-mark {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--g1), var(--g2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 24px rgba(236,72,153,0.45);
+    }
+    .logo-text { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+    .logo-text span {
+      background: linear-gradient(90deg, #C084FC, #F472B6);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .nav-links { display: flex; align-items: center; gap: 6px; }
+    .nav-item { position: relative; }
+    .nav-btn {
+      display: flex; align-items: center; gap: 5px;
+      padding: 8px 16px; border-radius: 999px;
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-muted); font-size: 14px; font-weight: 500;
+      cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+    .nav-btn:hover {
+      background: rgba(147,51,234,0.12); border-color: rgba(236,72,153,0.35);
+      color: var(--text-primary);
+    }
+    .nav-btn .arrow { width: 14px; height: 14px; transition: transform 0.2s; opacity: 0.5; }
+    .dropdown {
+      position: absolute; top: calc(100% + 10px); left: 50%;
+      transform: translateX(-50%) translateY(-6px);
+      min-width: 220px; padding: 8px;
+      background: rgba(8,8,16,0.97); backdrop-filter: blur(24px);
+      border: 1px solid rgba(147,51,234,0.3); border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(236,72,153,0.08);
+      opacity: 0; pointer-events: none;
+      transition: all 0.2s cubic-bezier(0.16,1,0.3,1); z-index: 50;
+    }
+    .nav-item:hover .dropdown, .nav-item:focus-within .dropdown {
+      opacity: 1; pointer-events: all; transform: translateX(-50%) translateY(0);
+    }
+    .dd-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 10px 12px; border-radius: 10px; text-decoration: none;
+      color: var(--text-muted); transition: all 0.15s;
+    }
+    .dd-item:hover { background: rgba(147,51,234,0.15); color: var(--text-primary); }
+    .dd-icon {
+      width: 34px; height: 34px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(147,51,234,0.2); font-size: 16px;
+    }
+    .dd-label { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+    .dd-desc { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+    .nav-cta { display: flex; align-items: center; gap: 8px; }
+    .btn-ghost {
+      padding: 8px 18px; border-radius: 999px;
+      background: transparent; border: 1px solid rgba(255,255,255,0.1);
+      color: var(--text-muted); font-size: 14px; font-weight: 500;
+      cursor: pointer; transition: all 0.2s; text-decoration: none;
+    }
+    .btn-ghost:hover { border-color: rgba(236,72,153,0.4); color: var(--text-primary); }
+    .btn-primary {
+      padding: 8px 20px; border-radius: 999px;
+      background: linear-gradient(135deg, var(--g1), var(--g2));
+      border: none; color: #fff; font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; text-decoration: none;
+      box-shadow: 0 4px 20px rgba(236,72,153,0.35);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(236,72,153,0.5); }
+
+    /* Hero */
+    .hero {
+      position: relative; z-index: 1;
+      padding: 100px 40px 80px;
+      text-align: center; max-width: 900px; margin: 0 auto;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 18px; border-radius: 999px; margin-bottom: 28px;
+      background: rgba(236,72,153,0.1); border: 1px solid rgba(236,72,153,0.3);
+      font-size: 13px; color: var(--accent); font-weight: 600;
+    }
+    .hero h1 {
+      font-size: clamp(38px, 6vw, 70px); font-weight: 900;
+      letter-spacing: -2px; line-height: 1.05; margin-bottom: 24px;
+    }
+    .hero h1 .grad {
+      background: linear-gradient(90deg, #C084FC, #F472B6, #FB923C);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .hero p { font-size: 18px; color: var(--text-muted); max-width: 560px; margin: 0 auto 40px; line-height: 1.7; }
+    .hero-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .btn-lg {
+      padding: 14px 32px; border-radius: 999px; font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: all 0.25s; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-lg-primary {
+      background: linear-gradient(135deg, var(--g1), var(--g2));
+      color: #fff; border: none; box-shadow: 0 6px 30px rgba(236,72,153,0.35);
+    }
+    .btn-lg-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 40px rgba(236,72,153,0.5); }
+    .btn-lg-ghost {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1); color: var(--text-primary);
+    }
+    .btn-lg-ghost:hover { background: rgba(147,51,234,0.1); border-color: rgba(147,51,234,0.3); }
+
+    /* Hero Visual */
+    .hero-visual {
+      position: relative; margin: 60px auto 0;
+      width: 100%; max-width: 860px; height: 340px; border-radius: 20px;
+      background: rgba(147,51,234,0.04);
+      border: 1px solid rgba(147,51,234,0.2);
+      overflow: hidden;
+      box-shadow: 0 0 100px rgba(236,72,153,0.12);
+    }
+    .hero-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(147,51,234,0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(236,72,153,0.06) 1px, transparent 1px);
+      background-size: 42px 42px;
+    }
+    .hero-orb {
+      position: absolute; border-radius: 50%;
+      filter: blur(55px); animation: float 9s ease-in-out infinite;
+    }
+    .orb1 { width: 220px; height: 220px; background: rgba(147,51,234,0.28); top: -50px; left: 5%; }
+    .orb2 { width: 180px; height: 180px; background: rgba(236,72,153,0.22); bottom: -40px; right: 10%; animation-delay: -4s; }
+    .orb3 { width: 130px; height: 130px; background: rgba(249,115,22,0.15); top: 25%; left: 45%; animation-delay: -6s; }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-22px); } }
+    .hero-dashboard {
+      position: absolute; top: 30px; left: 50%; transform: translateX(-50%);
+      width: 90%; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+    }
+    .dash-card {
+      background: rgba(8,8,16,0.85); border: 1px solid rgba(147,51,234,0.22);
+      border-radius: 12px; padding: 16px; backdrop-filter: blur(10px);
+    }
+    .dash-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+    .dash-value {
+      font-size: 22px; font-weight: 800; margin-top: 4px;
+      background: linear-gradient(90deg, #C084FC, #F472B6);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .dash-sub { font-size: 10px; color: #34D399; margin-top: 2px; }
+
+    /* Section */
+    section { position: relative; z-index: 1; padding: 80px 40px; }
+    .section-label { text-align: center; font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
+    .section-title { text-align: center; font-size: clamp(28px,4vw,46px); font-weight: 800; letter-spacing: -1px; margin-bottom: 16px; }
+    .section-sub { text-align: center; font-size: 16px; color: var(--text-muted); max-width: 520px; margin: 0 auto 56px; }
+
+    /* Cards */
+    .cards-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px; max-width: 1100px; margin: 0 auto;
+    }
+    .card {
+      position: relative;
+      background: var(--bg-card);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 20px; padding: 28px;
+      transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute; inset: 0; border-radius: 20px;
+      background: radial-gradient(circle at top left, rgba(236,72,153,0.08), transparent 60%);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(236,72,153,0.45);
+      box-shadow: 0 20px 60px rgba(147,51,234,0.2), 0 0 0 1px rgba(236,72,153,0.15);
+    }
+    .card:hover::before { opacity: 1; }
+    .card-icon {
+      width: 52px; height: 52px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; margin-bottom: 18px;
+      background: linear-gradient(135deg, rgba(147,51,234,0.2), rgba(236,72,153,0.15));
+      border: 1px solid rgba(147,51,234,0.25); transition: all 0.3s;
+    }
+    .card:hover .card-icon {
+      background: linear-gradient(135deg, rgba(147,51,234,0.35), rgba(236,72,153,0.3));
+      box-shadow: 0 0 20px rgba(236,72,153,0.3);
+    }
+    .card h3 { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+    .card p { font-size: 14px; color: var(--text-muted); line-height: 1.65; }
+    .card-tag {
+      display: inline-flex; margin-top: 16px;
+      padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600;
+      background: rgba(236,72,153,0.1); border: 1px solid rgba(236,72,153,0.25); color: var(--accent);
+    }
+
+    /* Stats */
+    .stats {
+      padding: 60px 40px;
+      border-top: 1px solid rgba(147,51,234,0.12);
+      border-bottom: 1px solid rgba(147,51,234,0.12);
+    }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 40px; max-width: 900px; margin: 0 auto; text-align: center;
+    }
+    .stat-value {
+      font-size: 44px; font-weight: 900; letter-spacing: -2px;
+      background: linear-gradient(90deg, #C084FC, #F472B6);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .stat-label { font-size: 13px; color: var(--text-muted); margin-top: 8px; }
+
+    /* Showcase / wide card */
+    .showcase {
+      max-width: 1100px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    }
+    .showcase-main {
+      background: linear-gradient(135deg, rgba(147,51,234,0.12), rgba(236,72,153,0.08));
+      border: 1px solid rgba(147,51,234,0.25); border-radius: 24px;
+      padding: 40px; position: relative; overflow: hidden;
+    }
+    .showcase-main::before {
+      content: '';
+      position: absolute; top: -60px; right: -60px;
+      width: 200px; height: 200px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(236,72,153,0.2), transparent 70%);
+    }
+    .showcase-main h3 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 14px; }
+    .showcase-main p { font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-bottom: 24px; }
+    .showcase-secondary { display: flex; flex-direction: column; gap: 20px; }
+    .showcase-sm {
+      background: rgba(147,51,234,0.06); border: 1px solid rgba(147,51,234,0.18);
+      border-radius: 20px; padding: 28px; flex: 1;
+      transition: all 0.3s;
+    }
+    .showcase-sm:hover {
+      border-color: rgba(236,72,153,0.3);
+      box-shadow: 0 10px 30px rgba(147,51,234,0.15);
+      transform: translateX(4px);
+    }
+    .showcase-sm h4 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .showcase-sm p { font-size: 13px; color: var(--text-muted); }
+
+    /* CTA */
+    .cta-section { padding: 80px 40px; text-align: center; }
+    .cta-box {
+      max-width: 700px; margin: 0 auto;
+      background: linear-gradient(135deg, rgba(147,51,234,0.12), rgba(236,72,153,0.1));
+      border: 1px solid rgba(236,72,153,0.25); border-radius: 28px;
+      padding: 60px 40px;
+      box-shadow: 0 0 100px rgba(147,51,234,0.12), 0 0 60px rgba(236,72,153,0.08);
+    }
+    .cta-box h2 { font-size: clamp(26px,4vw,42px); font-weight: 800; letter-spacing: -1px; margin-bottom: 14px; }
+    .cta-box p { font-size: 16px; color: var(--text-muted); margin-bottom: 32px; }
+    .cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    /* Footer */
+    footer {
+      position: relative; z-index: 1;
+      padding: 56px 40px 32px;
+      border-top: 1px solid rgba(147,51,234,0.15);
+    }
+    .footer-grid {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 40px; max-width: 1100px; margin: 0 auto 48px;
+    }
+    .footer-brand p { font-size: 13px; color: var(--text-muted); margin-top: 12px; line-height: 1.6; max-width: 240px; }
+    .footer-col h4 { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px; }
+    .footer-col a { display: block; font-size: 13px; color: var(--text-muted); text-decoration: none; margin-bottom: 10px; transition: color 0.2s; }
+    .footer-col a:hover { color: var(--text-primary); }
+    .footer-bottom {
+      max-width: 1100px; margin: 0 auto;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+      padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.05);
+      font-size: 12px; color: var(--text-muted);
+    }
+    .footer-bottom a { color: var(--text-muted); text-decoration: none; }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 16px; }
+      .hero { padding: 60px 20px 40px; }
+      section { padding: 60px 20px; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .showcase { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Theme Bar -->
+  <div class="theme-bar">
+    <span>Color Themes:</span>
+    <a href="index.html" class="theme-pill tp1">◈ Cosmic Purple</a>
+    <a href="theme-2.html" class="theme-pill tp2">◈ Enterprise Navy</a>
+    <a href="theme-3.html" class="theme-pill tp3 active">◈ Nebula</a>
+    <a href="theme-4.html" class="theme-pill tp4">◈ Ocean Teal</a>
+  </div>
+
+  <!-- Nav -->
+  <nav>
+    <a href="#" class="nav-logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" width="20" height="20"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <span class="logo-text"><span>Stack</span>lume</span>
+    </a>
+    <div class="nav-links">
+      <div class="nav-item">
+        <button class="nav-btn">Platform <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="dropdown">
+          <a class="dd-item" href="#"><div class="dd-icon">🧠</div><div><div class="dd-label">AI Inference</div><div class="dd-desc">Deploy models at scale</div></div></a>
+          <a class="dd-item" href="#"><div class="dd-icon">⚡</div><div><div class="dd-label">Vector Search</div><div class="dd-desc">Semantic retrieval</div></div></a>
+          <a class="dd-item" href="#"><div class="dd-icon">🔄</div><div><div class="dd-label">Pipelines</div><div class="dd-desc">AI workflow builder</div></div></a>
+          <a class="dd-item" href="#"><div class="dd-icon">📊</div><div><div class="dd-label">Analytics</div><div class="dd-desc">Usage &amp; model metrics</div></div></a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <button class="nav-btn">Solutions <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="dropdown">
+          <a class="dd-item" href="#"><div class="dd-icon">🏢</div><div><div class="dd-label">Enterprise</div><div class="dd-desc">Secure &amp; compliant AI</div></div></a>
+          <a class="dd-item" href="#"><div class="dd-icon">🚀</div><div><div class="dd-label">Startups</div><div class="dd-desc">Ship AI products fast</div></div></a>
+          <a class="dd-item" href="#"><div class="dd-icon">🔬</div><div><div class="dd-label">Research</div><div class="dd-desc">Experiment at scale</div></div></a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <button class="nav-btn">Developers <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="dropdown">
+          <a class="dd-item" href="api/"><div class="dd-icon">📖</div><div><div class="dd-label">API Reference</div><div class="dd-desc">REST &amp; GraphQL docs</div></div></a>
+          <a class="dd-item" href="#"><div class="dd-icon">💻</div><div><div class="dd-label">SDKs</div><div class="dd-desc">Python, JS, Go, Rust</div></div></a>
+          <a class="dd-item" href="demo/"><div class="dd-icon">🎮</div><div><div class="dd-label">Playground</div><div class="dd-desc">Try before you build</div></div></a>
+        </div>
+      </div>
+      <a href="#" class="nav-btn">Pricing</a>
+      <a href="#" class="nav-btn">Blog</a>
+    </div>
+    <div class="nav-cta">
+      <a href="#" class="btn-ghost">Sign in</a>
+      <a href="demo/" class="btn-primary">Start free →</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge">✨ The AI Platform for Innovators</div>
+    <h1>Create AI products<br><span class="grad">beyond imagination</span></h1>
+    <p>Stacklume gives visionary teams the tools to build, deploy, and scale generative AI products with breathtaking speed and precision.</p>
+    <div class="hero-btns">
+      <a href="demo/" class="btn-lg btn-lg-primary">Launch playground →</a>
+      <a href="api/" class="btn-lg btn-lg-ghost">Explore API docs</a>
+    </div>
+    <div class="hero-visual">
+      <div class="hero-grid"></div>
+      <div class="hero-orb orb1"></div>
+      <div class="hero-orb orb2"></div>
+      <div class="hero-orb orb3"></div>
+      <div class="hero-dashboard">
+        <div class="dash-card"><div class="dash-label">Prompt Tokens</div><div class="dash-value">28.4B</div><div class="dash-sub">↑ 43% this month</div></div>
+        <div class="dash-card"><div class="dash-label">Models Available</div><div class="dash-value">142</div><div class="dash-sub">+17 added this week</div></div>
+        <div class="dash-card"><div class="dash-label">Avg Response</div><div class="dash-value">31ms</div><div class="dash-sub">↓ 8ms faster</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section>
+    <div class="section-label">What We Offer</div>
+    <h2 class="section-title">A platform born for creativity</h2>
+    <p class="section-sub">From first prompt to production deployment, Stacklume accelerates every step of the AI development journey.</p>
+    <div class="cards-grid">
+      <div class="card"><div class="card-icon">✨</div><h3>Generative AI Suite</h3><p>Text, code, image, and audio generation through a single unified API. 140+ models available.</p><span class="card-tag">Generative</span></div>
+      <div class="card"><div class="card-icon">🧩</div><h3>Prompt Studio</h3><p>Visual prompt engineering with A/B testing, versioning, and automatic prompt optimization.</p><span class="card-tag">Studio</span></div>
+      <div class="card"><div class="card-icon">🌊</div><h3>Streaming Inference</h3><p>Real-time streaming with SSE and WebSocket support. First-token latency under 30ms.</p><span class="card-tag">Performance</span></div>
+      <div class="card"><div class="card-icon">🔮</div><h3>RAG Pipelines</h3><p>Build retrieval-augmented generation systems with automatic chunking, embedding, and retrieval.</p><span class="card-tag">RAG</span></div>
+      <div class="card"><div class="card-icon">🎭</div><h3>Agent Framework</h3><p>Build multi-agent systems with memory, tool calling, planning, and collaborative reasoning.</p><span class="card-tag">Agents</span></div>
+      <div class="card"><div class="card-icon">🛡️</div><h3>Guardrails &amp; Safety</h3><p>Built-in content filtering, PII detection, and customizable safety policies for your use case.</p><span class="card-tag">Safety</span></div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stats-grid">
+      <div><div class="stat-value">140+</div><div class="stat-label">AI Models</div></div>
+      <div><div class="stat-value">30ms</div><div class="stat-label">First Token P50</div></div>
+      <div><div class="stat-value">99.99%</div><div class="stat-label">Uptime SLA</div></div>
+      <div><div class="stat-value">50K+</div><div class="stat-label">Developers</div></div>
+    </div>
+  </div>
+
+  <!-- Showcase -->
+  <section>
+    <div class="section-label">Deep Dive</div>
+    <h2 class="section-title">Built for the way you build</h2>
+    <p class="section-sub">Powerful tools that adapt to your workflow, not the other way around.</p>
+    <div class="showcase">
+      <div class="showcase-main">
+        <h3>Multi-modal AI Pipelines</h3>
+        <p>Chain text, vision, audio, and code models together into sophisticated pipelines. Process documents, images, and data streams in a single workflow. Our visual builder lets you prototype in minutes and deploy in one click.</p>
+        <a href="demo/" class="btn-lg btn-lg-primary" style="display:inline-flex;font-size:14px;padding:12px 24px;">Try the builder →</a>
+      </div>
+      <div class="showcase-secondary">
+        <div class="showcase-sm">
+          <h4>🧬 Fine-tuning Studio</h4>
+          <p>Upload datasets, train custom adapters, and evaluate model quality — all in one place.</p>
+        </div>
+        <div class="showcase-sm">
+          <h4>📦 Model Registry</h4>
+          <p>Version, tag, and promote models across dev, staging, and production environments.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="cta-box">
+      <h2>Join 50,000+ builders on Stacklume</h2>
+      <p>The fastest way to go from AI idea to production product.</p>
+      <div class="cta-btns">
+        <a href="demo/" class="btn-lg btn-lg-primary">Start building free →</a>
+        <a href="api/" class="btn-lg btn-lg-ghost">Read the docs</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="#" class="nav-logo">
+          <div class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" width="20" height="20"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+          <span class="logo-text"><span>Stack</span>lume</span>
+        </a>
+        <p>Built for teams who create extraordinary things with AI.</p>
+      </div>
+      <div class="footer-col"><h4>Platform</h4><a href="#">AI Models</a><a href="#">Pipelines</a><a href="#">Vector Store</a><a href="#">Guardrails</a><a href="#">Fine-tuning</a></div>
+      <div class="footer-col"><h4>Developers</h4><a href="api/">API Reference</a><a href="#">SDKs</a><a href="demo/">Playground</a><a href="#">Changelog</a><a href="#">Status</a></div>
+      <div class="footer-col"><h4>Company</h4><a href="#">About</a><a href="#">Blog</a><a href="#">Careers</a><a href="#">Press</a><a href="#">Contact</a></div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 Stacklume, Inc. All rights reserved.</span>
+      <span style="display:flex;gap:16px;"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Security</a></span>
+    </div>
+  </footer>
+
+</body>
+</html>

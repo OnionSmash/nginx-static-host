@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stacklume Demo — AI Playground</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      background: #070714;
+      color: #E2E8F0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+
+    :root {
+      --g1: #7C3AED;
+      --g2: #06B6D4;
+      --accent: #06B6D4;
+      --text-primary: #F8FAFC;
+      --text-muted: #64748B;
+      --sidebar-bg: rgba(7,7,20,0.95);
+      --panel-bg: rgba(12,12,28,0.9);
+      --border: rgba(124,58,237,0.2);
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 50% 40% at 20% 30%, rgba(124,58,237,0.1) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 35% at 80% 70%, rgba(6,182,212,0.08) 0%, transparent 60%);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* Top Bar */
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px; height: 52px; flex-shrink: 0;
+      background: rgba(7,7,20,0.96); backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border); z-index: 50;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .back-link {
+      display: flex; align-items: center; gap: 6px;
+      color: #64748B; text-decoration: none; font-size: 13px;
+      transition: color 0.2s; padding: 4px 10px; border-radius: 8px;
+    }
+    .back-link:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
+    .divider { width: 1px; height: 20px; background: var(--border); }
+    .site-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .logo-mark {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, var(--g1), var(--g2));
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-text { font-size: 15px; font-weight: 800; letter-spacing: -0.5px; color: var(--text-primary); }
+    .logo-text span { background: linear-gradient(90deg, var(--g1), var(--g2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .topbar-center { display: flex; align-items: center; gap: 4px; }
+    .tab-btn {
+      padding: 6px 14px; border-radius: 8px; font-size: 13px; font-weight: 500;
+      background: transparent; border: none; color: var(--text-muted);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .tab-btn.active {
+      background: rgba(124,58,237,0.15); color: var(--text-primary);
+      border: 1px solid rgba(124,58,237,0.25);
+    }
+    .tab-btn:hover:not(.active) { background: rgba(255,255,255,0.04); color: #CBD5E1; }
+    .topbar-right { display: flex; align-items: center; gap: 8px; }
+    .status-dot {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: #10B981; padding: 4px 10px;
+      background: rgba(16,185,129,0.08); border-radius: 999px;
+      border: 1px solid rgba(16,185,129,0.2);
+    }
+    .status-dot::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: #10B981; box-shadow: 0 0 6px #10B981;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+    /* Main Layout */
+    .main {
+      display: flex; flex: 1; overflow: hidden; position: relative; z-index: 1;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 240px; flex-shrink: 0;
+      background: var(--sidebar-bg); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow-y: auto;
+    }
+    .sidebar-section { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .sidebar-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; }
+    .model-select {
+      width: 100%; padding: 9px 12px; border-radius: 10px;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-primary); font-size: 13px; cursor: pointer;
+      appearance: none;
+    }
+    .model-select:focus { outline: none; border-color: rgba(124,58,237,0.5); }
+
+    .slider-row { margin-bottom: 14px; }
+    .slider-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .slider-name { font-size: 12px; color: #94A3B8; }
+    .slider-val { font-size: 12px; font-weight: 600; color: var(--accent); }
+    input[type=range] {
+      width: 100%; height: 4px; border-radius: 2px; cursor: pointer;
+      appearance: none; background: linear-gradient(90deg, var(--g1), var(--g2));
+    }
+    input[type=range]::-webkit-slider-thumb {
+      appearance: none; width: 14px; height: 14px; border-radius: 50%;
+      background: #fff; box-shadow: 0 0 6px rgba(124,58,237,0.5);
+    }
+
+    .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .preset-btn {
+      padding: 7px; border-radius: 8px; font-size: 11px; font-weight: 600;
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+      color: var(--text-muted); cursor: pointer; transition: all 0.15s; text-align: center;
+    }
+    .preset-btn:hover { background: rgba(124,58,237,0.12); border-color: rgba(124,58,237,0.3); color: var(--text-primary); }
+    .preset-btn.active { background: rgba(124,58,237,0.2); border-color: rgba(124,58,237,0.45); color: var(--text-primary); }
+
+    /* Chat Area */
+    .chat-area {
+      flex: 1; display: flex; flex-direction: column; overflow: hidden;
+    }
+    .messages {
+      flex: 1; overflow-y: auto; padding: 24px;
+      display: flex; flex-direction: column; gap: 20px;
+    }
+    .messages::-webkit-scrollbar { width: 4px; }
+    .messages::-webkit-scrollbar-track { background: transparent; }
+    .messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+    .message { display: flex; gap: 12px; max-width: 85%; }
+    .message.user { align-self: flex-end; flex-direction: row-reverse; }
+    .message.assistant { align-self: flex-start; }
+
+    .msg-avatar {
+      width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700;
+    }
+    .msg-avatar.user-av { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); color: #fff; }
+    .msg-avatar.ai-av { background: linear-gradient(135deg, var(--g1), var(--g2)); color: #fff; font-size: 12px; }
+
+    .msg-bubble {
+      padding: 12px 16px; border-radius: 14px; font-size: 14px; line-height: 1.65;
+    }
+    .message.user .msg-bubble {
+      background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(6,182,212,0.15));
+      border: 1px solid rgba(124,58,237,0.3); color: var(--text-primary);
+      border-top-right-radius: 4px;
+    }
+    .message.assistant .msg-bubble {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08); color: #CBD5E1;
+      border-top-left-radius: 4px;
+    }
+    .msg-meta { font-size: 11px; color: var(--text-muted); margin-top: 4px; text-align: right; }
+    .message.assistant .msg-meta { text-align: left; }
+
+    /* Code block in message */
+    .code-block {
+      background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px; padding: 12px 14px; margin-top: 10px;
+      font-family: 'Fira Code', 'Cascadia Code', monospace; font-size: 12px;
+      line-height: 1.6; color: #7DD3FC; overflow-x: auto;
+    }
+    .code-lang { font-size: 10px; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; }
+
+    /* Typing indicator */
+    .typing {
+      display: flex; align-items: center; gap: 4px; padding: 12px 16px;
+    }
+    .typing-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent);
+      animation: typing-anim 1.2s infinite;
+    }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typing-anim { 0%,60%,100% { opacity:0.2; transform: scale(0.85); } 30% { opacity:1; transform: scale(1.1); } }
+
+    /* Input Bar */
+    .input-bar {
+      padding: 16px 20px;
+      background: var(--sidebar-bg); border-top: 1px solid var(--border);
+    }
+    .input-row {
+      display: flex; gap: 10px; align-items: flex-end;
+    }
+    .input-wrap {
+      flex: 1; position: relative;
+    }
+    .chat-input {
+      width: 100%; padding: 12px 48px 12px 16px;
+      border-radius: 14px; resize: none; min-height: 48px; max-height: 140px;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(124,58,237,0.25);
+      color: var(--text-primary); font-size: 14px; font-family: inherit;
+      line-height: 1.5; transition: border-color 0.2s;
+    }
+    .chat-input::placeholder { color: var(--text-muted); }
+    .chat-input:focus { outline: none; border-color: rgba(124,58,237,0.5); background: rgba(124,58,237,0.05); }
+    .send-btn {
+      position: absolute; right: 10px; bottom: 10px;
+      width: 30px; height: 30px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--g1), var(--g2));
+      border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s; color: #fff;
+    }
+    .send-btn:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(124,58,237,0.4); }
+    .input-actions { display: flex; gap: 6px; margin-top: 8px; }
+    .action-chip {
+      padding: 5px 12px; border-radius: 999px; font-size: 11px; font-weight: 600;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-muted); cursor: pointer; transition: all 0.15s;
+    }
+    .action-chip:hover { border-color: rgba(124,58,237,0.3); color: var(--text-primary); }
+
+    /* Right Panel */
+    .right-panel {
+      width: 260px; flex-shrink: 0;
+      background: var(--sidebar-bg); border-left: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow-y: auto;
+    }
+    .panel-section { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .panel-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; }
+    .metric-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .metric-name { font-size: 12px; color: #94A3B8; }
+    .metric-val { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+    .metric-val.green { color: #34D399; }
+    .metric-val.blue { color: #38BDF8; }
+    .metric-val.purple { color: #A78BFA; }
+
+    .bar-row { margin-bottom: 12px; }
+    .bar-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .bar-name { font-size: 11px; color: #94A3B8; }
+    .bar-pct { font-size: 11px; color: var(--accent); font-weight: 600; }
+    .bar-track {
+      height: 4px; border-radius: 2px; background: rgba(255,255,255,0.06); overflow: hidden;
+    }
+    .bar-fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
+    .bf1 { background: linear-gradient(90deg, var(--g1), var(--g2)); width: 78%; }
+    .bf2 { background: linear-gradient(90deg, #F59E0B, #EF4444); width: 52%; }
+    .bf3 { background: linear-gradient(90deg, #10B981, #34D399); width: 34%; }
+
+    .log-entry {
+      font-size: 11px; font-family: monospace; color: #4B5563;
+      padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.02);
+      display: flex; gap: 8px;
+    }
+    .log-time { color: #374151; flex-shrink: 0; }
+    .log-entry.ok .log-msg { color: #34D399; }
+    .log-entry.info .log-msg { color: #38BDF8; }
+    .log-entry.warn .log-msg { color: #F59E0B; }
+
+    @media (max-width: 1024px) {
+      .right-panel { display: none; }
+    }
+    @media (max-width: 640px) {
+      .sidebar { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <a href="../" class="back-link">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to stacklume.com
+      </a>
+      <div class="divider"></div>
+      <a href="../" class="site-logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" width="16" height="16"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <span class="logo-text"><span>Stack</span>lume</span>
+      </a>
+      <span style="font-size:12px;color:#64748B;">/ Demo Playground</span>
+    </div>
+    <div class="topbar-center">
+      <button class="tab-btn active">Chat</button>
+      <button class="tab-btn">Complete</button>
+      <button class="tab-btn">Embed</button>
+      <button class="tab-btn">Image</button>
+      <button class="tab-btn">Evaluate</button>
+    </div>
+    <div class="topbar-right">
+      <div class="status-dot">All systems nominal</div>
+      <a href="../api/" style="padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#A78BFA;text-decoration:none;">API Docs</a>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Sidebar: Settings -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Model</div>
+        <select class="model-select">
+          <option>stacklume/llm-ultra-v2</option>
+          <option>stacklume/llm-fast-v3</option>
+          <option>openai/gpt-4o</option>
+          <option>anthropic/claude-3-5-sonnet</option>
+          <option>meta/llama-3.1-405b</option>
+          <option>google/gemini-1.5-pro</option>
+          <option>mistral/mistral-large-2</option>
+        </select>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">Parameters</div>
+        <div class="slider-row">
+          <div class="slider-header"><span class="slider-name">Temperature</span><span class="slider-val">0.7</span></div>
+          <input type="range" min="0" max="2" step="0.1" value="0.7" />
+        </div>
+        <div class="slider-row">
+          <div class="slider-header"><span class="slider-name">Max Tokens</span><span class="slider-val">2048</span></div>
+          <input type="range" min="64" max="8192" step="64" value="2048" />
+        </div>
+        <div class="slider-row">
+          <div class="slider-header"><span class="slider-name">Top P</span><span class="slider-val">0.95</span></div>
+          <input type="range" min="0" max="1" step="0.01" value="0.95" />
+        </div>
+        <div class="slider-row">
+          <div class="slider-header"><span class="slider-name">Frequency Pen.</span><span class="slider-val">0.0</span></div>
+          <input type="range" min="0" max="2" step="0.1" value="0" />
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">Presets</div>
+        <div class="preset-grid">
+          <button class="preset-btn active">Creative</button>
+          <button class="preset-btn">Precise</button>
+          <button class="preset-btn">Code</button>
+          <button class="preset-btn">Concise</button>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">System Prompt</div>
+        <textarea style="width:100%;min-height:80px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px;color:#94A3B8;font-size:12px;resize:vertical;font-family:inherit;" placeholder="You are a helpful AI assistant..."></textarea>
+      </div>
+    </aside>
+
+    <!-- Chat -->
+    <div class="chat-area">
+      <div class="messages" id="messages">
+
+        <div class="message assistant">
+          <div class="msg-avatar ai-av">SL</div>
+          <div>
+            <div class="msg-bubble">
+              👋 Welcome to the <strong style="color:#A78BFA;">Stacklume Playground</strong>! I'm running on <code style="background:rgba(124,58,237,0.2);padding:1px 6px;border-radius:4px;font-size:12px;">stacklume/llm-ultra-v2</code>.<br><br>
+              You can ask me anything, generate code, analyze data, or try any of the example prompts below. What would you like to explore?
+            </div>
+            <div class="msg-meta">stacklume/llm-ultra-v2 · just now</div>
+          </div>
+        </div>
+
+        <div class="message user">
+          <div class="msg-avatar user-av">U</div>
+          <div>
+            <div class="msg-bubble">
+              Show me a Python example to call the Stacklume API for streaming text generation.
+            </div>
+            <div class="msg-meta">You · 2 min ago</div>
+          </div>
+        </div>
+
+        <div class="message assistant">
+          <div class="msg-avatar ai-av">SL</div>
+          <div>
+            <div class="msg-bubble">
+              Here's a clean Python example using the Stacklume SDK for streaming:
+              <div class="code-block">
+                <div class="code-lang">python</div>
+                <span style="color:#C084FC;">from</span> stacklume <span style="color:#C084FC;">import</span> Stacklume<br><br>
+                client = Stacklume(api_key=<span style="color:#86EFAC;">"sk-..."</span>)<br><br>
+                <span style="color:#94A3B8;"># Stream a response</span><br>
+                <span style="color:#C084FC;">with</span> client.chat.stream(<br>
+                &nbsp;&nbsp;model=<span style="color:#86EFAC;">"stacklume/llm-ultra-v2"</span>,<br>
+                &nbsp;&nbsp;messages=[{<span style="color:#86EFAC;">"role"</span>: <span style="color:#86EFAC;">"user"</span>, <span style="color:#86EFAC;">"content"</span>: <span style="color:#86EFAC;">"Hello!"</span>}],<br>
+                &nbsp;&nbsp;stream=<span style="color:#FB923C;">True</span>,<br>
+                ) <span style="color:#C084FC;">as</span> stream:<br>
+                &nbsp;&nbsp;<span style="color:#C084FC;">for</span> chunk <span style="color:#C084FC;">in</span> stream:<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;print(chunk.choices[<span style="color:#FB923C;">0</span>].delta.content, end=<span style="color:#86EFAC;">""</span>, flush=<span style="color:#FB923C;">True</span>)
+              </div>
+              <br>
+              This uses server-sent events under the hood with P50 first-token latency of <strong style="color:#34D399;">~31ms</strong>. Install with <code style="background:rgba(0,0,0,0.3);padding:1px 6px;border-radius:4px;font-size:12px;color:#7DD3FC;">pip install stacklume</code>.
+            </div>
+            <div class="msg-meta">stacklume/llm-ultra-v2 · 1 min ago · 148 tokens · 38ms TTFT</div>
+          </div>
+        </div>
+
+        <!-- Typing indicator (shows AI is responding) -->
+        <div class="message assistant" id="typing-indicator" style="display:none">
+          <div class="msg-avatar ai-av">SL</div>
+          <div>
+            <div class="msg-bubble">
+              <div class="typing">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Input Bar -->
+      <div class="input-bar">
+        <div class="input-row">
+          <div class="input-wrap">
+            <textarea
+              id="chat-input"
+              class="chat-input"
+              rows="1"
+              placeholder="Ask anything, request code, analyze data…"
+            ></textarea>
+            <button class="send-btn" onclick="sendMessage()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="input-actions">
+          <button class="action-chip" onclick="setPrompt('Summarize this document for me')">📄 Summarize</button>
+          <button class="action-chip" onclick="setPrompt('Write Python code to')">💻 Code</button>
+          <button class="action-chip" onclick="setPrompt('Analyze the data and tell me')">📊 Analyze</button>
+          <button class="action-chip" onclick="setPrompt('Translate to Spanish:')">🌐 Translate</button>
+          <button class="action-chip" onclick="setPrompt('Explain in simple terms:')">🧠 Explain</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel: Metrics -->
+    <aside class="right-panel">
+      <div class="panel-section">
+        <div class="panel-label">Session Metrics</div>
+        <div class="metric-row"><span class="metric-name">Total tokens</span><span class="metric-val blue">2,847</span></div>
+        <div class="metric-row"><span class="metric-name">TTFT (avg)</span><span class="metric-val green">38ms</span></div>
+        <div class="metric-row"><span class="metric-name">Throughput</span><span class="metric-val green">94 tok/s</span></div>
+        <div class="metric-row"><span class="metric-name">Messages</span><span class="metric-val">6</span></div>
+        <div class="metric-row"><span class="metric-name">Est. cost</span><span class="metric-val purple">$0.0018</span></div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-label">Model Routing</div>
+        <div class="bar-row">
+          <div class="bar-header"><span class="bar-name">llm-ultra-v2</span><span class="bar-pct">78%</span></div>
+          <div class="bar-track"><div class="bar-fill bf1"></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-header"><span class="bar-name">llm-fast-v3</span><span class="bar-pct">52%</span></div>
+          <div class="bar-track"><div class="bar-fill bf2"></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-header"><span class="bar-name">External fallback</span><span class="bar-pct">34%</span></div>
+          <div class="bar-track"><div class="bar-fill bf3"></div></div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-label">Request Log</div>
+        <div class="log-entry ok"><span class="log-time">14:23:42</span><span class="log-msg">200 OK · 38ms</span></div>
+        <div class="log-entry ok"><span class="log-time">14:21:15</span><span class="log-msg">200 OK · 41ms</span></div>
+        <div class="log-entry info"><span class="log-time">14:20:08</span><span class="log-msg">STREAM · 142 tokens</span></div>
+        <div class="log-entry ok"><span class="log-time">14:18:55</span><span class="log-msg">200 OK · 29ms</span></div>
+        <div class="log-entry warn"><span class="log-time">14:16:33</span><span class="log-msg">RATE_LIMIT · retry</span></div>
+        <div class="log-entry ok"><span class="log-time">14:15:01</span><span class="log-msg">200 OK · 45ms</span></div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-label">Quick Links</div>
+        <a href="../api/" style="display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;text-decoration:none;color:#94A3B8;font-size:12px;transition:all 0.15s;" onmouseover="this.style.background='rgba(124,58,237,0.1)';this.style.color='#fff'" onmouseout="this.style.background='';this.style.color='#94A3B8'">
+          📖 API Documentation
+        </a>
+        <a href="../" style="display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;text-decoration:none;color:#94A3B8;font-size:12px;transition:all 0.15s;" onmouseover="this.style.background='rgba(124,58,237,0.1)';this.style.color='#fff'" onmouseout="this.style.background='';this.style.color='#94A3B8'">
+          🌐 stacklume.com
+        </a>
+        <a href="#" style="display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;text-decoration:none;color:#94A3B8;font-size:12px;transition:all 0.15s;" onmouseover="this.style.background='rgba(124,58,237,0.1)';this.style.color='#fff'" onmouseout="this.style.background='';this.style.color='#94A3B8'">
+          💬 Join Discord
+        </a>
+      </div>
+    </aside>
+
+  </div>
+
+  <script>
+    function setPrompt(text) {
+      const input = document.getElementById('chat-input');
+      input.value = text + ' ';
+      input.focus();
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const messages = document.getElementById('messages');
+      const typing = document.getElementById('typing-indicator');
+
+      // Add user message
+      const userMsg = document.createElement('div');
+      userMsg.className = 'message user';
+      userMsg.innerHTML = `
+        <div class="msg-avatar user-av">U</div>
+        <div>
+          <div class="msg-bubble">${text.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+          <div class="msg-meta">You · just now</div>
+        </div>
+      `;
+      messages.insertBefore(userMsg, typing);
+      input.value = '';
+
+      // Show typing
+      typing.style.display = 'flex';
+      messages.scrollTop = messages.scrollHeight;
+
+      // Simulate response
+      setTimeout(() => {
+        typing.style.display = 'none';
+        const responses = [
+          "That's a great question! Based on my analysis, I can provide a comprehensive response. The Stacklume platform is designed to handle exactly this type of use case with ultra-low latency and high reliability.",
+          "Here's what I found: The Stacklume API supports this natively. You can implement this in just a few lines using our SDK, with automatic retry and error handling built in.",
+          "Excellent! I've processed your request. The result demonstrates how Stacklume's multi-model routing selects the optimal model automatically based on your query type.",
+        ];
+        const reply = responses[Math.floor(Math.random() * responses.length)];
+        const aiMsg = document.createElement('div');
+        aiMsg.className = 'message assistant';
+        aiMsg.innerHTML = `
+          <div class="msg-avatar ai-av">SL</div>
+          <div>
+            <div class="msg-bubble">${reply}</div>
+            <div class="msg-meta">stacklume/llm-ultra-v2 · just now · ${Math.floor(Math.random()*200)+50} tokens · ${Math.floor(Math.random()*30)+25}ms TTFT</div>
+          </div>
+        `;
+        messages.appendChild(aiMsg);
+        messages.scrollTop = messages.scrollHeight;
+      }, 1500);
+    }
+
+    // Enter to send
+    document.getElementById('chat-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Preset buttons
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // Slider value display
+    document.querySelectorAll('input[type=range]').forEach(slider => {
+      slider.addEventListener('input', function() {
+        this.closest('.slider-row').querySelector('.slider-val').textContent = this.value;
+      });
+    });
+  </script>
+</body>
+</html>
