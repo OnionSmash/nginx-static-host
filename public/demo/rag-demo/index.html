@@ -1656,9 +1656,12 @@ resource synapseWs 'Microsoft.Synapse/workspaces@2021-06-01' = {
       filesystem: 'curated'
     }
     sqlAdministratorLogin: 'synapseadmin'
-    // WARNING: Replace with a secure parameter reference or Key Vault secret in production.
-    // This placeholder password is for demo purposes only and must not be used in real deployments.
-    sqlAdministratorLoginPassword: '\${uniqueString(resourceGroup().id)}Aa1!'
+    // ⚠️  SECURITY: Never commit real passwords. Use a Key Vault reference or
+    //     a @secure() parameter instead, e.g.:
+    //       param sqlAdminPassword string
+    //       @secure() <— decorator ensures value is never logged or shown in deployments
+    //     Replace the placeholder below before deploying to any environment.
+    sqlAdministratorLoginPassword: 'REPLACE_WITH_SECURE_PARAM_OR_KEYVAULT_REF'
     managedVirtualNetwork: 'default'
     managedResourceGroupName: '\${prefix}-synapse-managed'
   }
