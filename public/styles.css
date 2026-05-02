@@ -141,7 +141,12 @@
 .citation strong { color: #f1f0ff; display: block; margin-bottom: 2px; }
 .citation span   { color: #9896b8; }
 
-/* ─── API page: JS-generated endpoint classes ─── */
+/* Active tab dot indicator (used by demo page product tabs) */
+.btn.active .product-tab__dot { background-color: #a78bfa; }
+
+/* API page endpoint grid: 2-col on mobile, 3-col on md+ */
+.endpoint-row { grid-template-columns: 80px 1fr; }
+@media (min-width: 768px) { .endpoint-row { grid-template-columns: 80px 1fr auto; } }
 .method {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.75rem;

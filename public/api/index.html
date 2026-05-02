@@ -395,7 +395,7 @@ grant_type=client_credentials
     const list = document.getElementById('endpointsList');
     const filtered = activeGroup === 'all' ? endpoints : endpoints.filter(e => e.group === activeGroup);
     list.innerHTML = filtered.map(e => `
-      <div class="grid items-center gap-4 px-[18px] py-3.5 bg-lume-card border border-white/[0.08] rounded-lg transition-colors hover:border-violet-600/40" style="grid-template-columns:80px 1fr auto">
+      <div class="endpoint-row grid items-center gap-4 px-[18px] py-3.5 bg-lume-card border border-white/[0.08] rounded-lg transition-colors hover:border-violet-600/40">
         <span class="method ${methodColors[e.method] || 'method-get'}">${e.method}</span>
         <span class="endpoint-path">/v1${e.path}</span>
         <span class="endpoint-badge hidden md:inline">${e.badge}</span>

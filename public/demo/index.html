@@ -64,19 +64,19 @@
 <div class="max-w-[1100px] mx-auto px-6 pt-10">
   <div class="flex gap-2 justify-center flex-wrap mb-12" id="productTabs">
     <button class="product-tab btn inline-flex items-center gap-2 px-[18px] py-2.5 rounded-xl bg-lume-card border border-white/[0.08] cursor-pointer font-sans text-[0.875rem] font-medium text-[#9896b8] transition-all duration-200 hover:border-violet-600/40 hover:text-[#f1f0ff] [&.active]:border-violet-600 [&.active]:text-[#f1f0ff] [&.active]:bg-violet-600/10" data-panel="trustweave">
-      <span class="product-tab__dot w-2 h-2 rounded-full bg-[#4e4c6a] shrink-0 [.active_&]:bg-violet-400"></span>TrustWeave
+      <span class="product-tab__dot w-2 h-2 rounded-full bg-[#4e4c6a] shrink-0"></span>TrustWeave
     </button>
     <button class="product-tab btn inline-flex items-center gap-2 px-[18px] py-2.5 rounded-xl bg-lume-card border border-white/[0.08] cursor-pointer font-sans text-[0.875rem] font-medium text-[#9896b8] transition-all duration-200 hover:border-violet-600/40 hover:text-[#f1f0ff] [&.active]:border-violet-600 [&.active]:text-[#f1f0ff] [&.active]:bg-violet-600/10" data-panel="narrativeguard">
-      <span class="product-tab__dot w-2 h-2 rounded-full bg-[#4e4c6a] shrink-0 [.active_&]:bg-violet-400"></span>NarrativeGuard
+      <span class="product-tab__dot w-2 h-2 rounded-full bg-[#4e4c6a] shrink-0"></span>NarrativeGuard
     </button>
     <button class="product-tab btn inline-flex items-center gap-2 px-[18px] py-2.5 rounded-xl bg-lume-card border border-white/[0.08] cursor-pointer font-sans text-[0.875rem] font-medium text-[#9896b8] transition-all duration-200 hover:border-violet-600/40 hover:text-[#f1f0ff] [&.active]:border-violet-600 [&.active]:text-[#f1f0ff] [&.active]:bg-violet-600/10" data-panel="complianceweave">
-      <span class="product-tab__dot w-2 h-2 rounded-full bg-[#4e4c6a] shrink-0 [.active_&]:bg-violet-400"></span>ComplianceWeave
+      <span class="product-tab__dot w-2 h-2 rounded-full bg-[#4e4c6a] shrink-0"></span>ComplianceWeave
     </button>
     <button class="product-tab btn inline-flex items-center gap-2 px-[18px] py-2.5 rounded-xl bg-lume-card border border-white/[0.08] cursor-pointer font-sans text-[0.875rem] font-medium text-[#9896b8] transition-all duration-200 hover:border-violet-600/40 hover:text-[#f1f0ff] [&.active]:border-violet-600 [&.active]:text-[#f1f0ff] [&.active]:bg-violet-600/10" data-panel="echosynth">
-      <span class="product-tab__dot w-2 h-2 rounded-full bg-[#4e4c6a] shrink-0 [.active_&]:bg-violet-400"></span>EchoSynth
+      <span class="product-tab__dot w-2 h-2 rounded-full bg-[#4e4c6a] shrink-0"></span>EchoSynth
     </button>
     <button class="product-tab btn inline-flex items-center gap-2 px-[18px] py-2.5 rounded-xl bg-lume-card border border-white/[0.08] cursor-pointer font-sans text-[0.875rem] font-medium text-[#9896b8] transition-all duration-200 hover:border-violet-600/40 hover:text-[#f1f0ff] [&.active]:border-violet-600 [&.active]:text-[#f1f0ff] [&.active]:bg-violet-600/10" data-panel="voicelume">
-      <span class="product-tab__dot w-2 h-2 rounded-full bg-[#4e4c6a] shrink-0 [.active_&]:bg-violet-400"></span>VoiceLume
+      <span class="product-tab__dot w-2 h-2 rounded-full bg-[#4e4c6a] shrink-0"></span>VoiceLume
     </button>
   </div>
 </div>
@@ -403,23 +403,26 @@ async function runTrustWeave() {
   const verdictEl = document.getElementById('tw-verdict');
   verdictEl.className = 'result-box has-result';
   verdictEl.innerHTML = overallScore >= 0.75
-    ? '✅ <strong>High Trust</strong> — Text is largely factually accurate.'
+    ? '<i class="bi bi-check-circle-fill text-emerald-400"></i> <strong>High Trust</strong> — Text is largely factually accurate.'
     : overallScore >= 0.4
-    ? '⚠️ <strong>Medium Trust</strong> — One or more claims could not be verified or are false. Review before publishing.'
-    : '🚫 <strong>Low Trust</strong> — Significant hallucinations detected. Do not publish without human review.';
+    ? '<i class="bi bi-exclamation-triangle-fill text-amber-400"></i> <strong>Medium Trust</strong> — One or more claims could not be verified or are false. Review before publishing.'
+    : '<i class="bi bi-x-circle-fill text-red-400"></i> <strong>Low Trust</strong> — Significant hallucinations detected. Do not publish without human review.';
 
   const claimsEl = document.getElementById('tw-claims');
   claimsEl.className = 'result-box has-result';
-  claimsEl.innerHTML = claims.map(c => `
-    <div class="citation">
-      <strong>
-        ${c.result === 'VERIFIED' ? '✅' : c.result === 'HALLUCINATION' ? '🚫' : '⚠️'}
-        "${c.claim}" — <span style="color:${c.result==='VERIFIED'?'#10b981':c.result==='HALLUCINATION'?'#ef4444':'#f59e0b'}">${c.result}</span>
-        (${pct(c.score)})
-      </strong>
-      <span>${c.note}</span>
-    </div>
-  `).join('');
+  claimsEl.innerHTML = claims.map(c => {
+    const icon   = c.result === 'VERIFIED'     ? '<i class="bi bi-check-circle-fill text-emerald-400"></i>'
+                 : c.result === 'HALLUCINATION' ? '<i class="bi bi-x-circle-fill text-red-400"></i>'
+                 :                               '<i class="bi bi-exclamation-triangle-fill text-amber-400"></i>';
+    const color  = c.result === 'VERIFIED'     ? 'text-emerald-400'
+                 : c.result === 'HALLUCINATION' ? 'text-red-400'
+                 :                               'text-amber-400';
+    return `
+      <div class="citation">
+        <strong>${icon} &ldquo;${c.claim}&rdquo; — <span class="${color}">${c.result}</span> (${pct(c.score)})</strong>
+        <span>${c.note}</span>
+      </div>`;
+  }).join('');
 
   setLoading(btn, false);
 }
@@ -441,7 +444,7 @@ async function runNarrativeGuard() {
 
   setScore('ng-score-wrap','ng-score-bar','ng-score-value', p.score);
   document.getElementById('ng-issues').className = 'result-box has-result';
-  document.getElementById('ng-issues').innerHTML = '<strong>Issues detected:</strong><ul style="margin-top:8px;padding-left:16px;color:var(--text-muted);font-size:0.85rem;">' + p.issues.map(i => `<li style="margin:4px 0;">⚠️ ${i}</li>`).join('') + '</ul>';
+  document.getElementById('ng-issues').innerHTML = '<strong class="text-[#f1f0ff]">Issues detected:</strong><ul class="mt-2 pl-4 space-y-1">' + p.issues.map(i => `<li class="text-[0.85rem] text-[#9896b8]"><i class="bi bi-exclamation-triangle-fill text-amber-400 mr-1"></i>${escHtml(i)}</li>`).join('') + '</ul>';
   document.getElementById('ng-rewrite').textContent = p.rewrite;
   document.getElementById('ng-rewrite').className = 'result-box has-result';
 
@@ -463,7 +466,7 @@ async function runComplianceWeave() {
   const results = {
     hipaa: {
       score: 0.04,
-      violations: ['❌ HIPAA §164.502 — Sharing medical records requires explicit written authorization','❌ HIPAA §164.514 — Selling PHI is prohibited without individual consent','❌ HIPAA §164.504 — Third-party sharing requires Business Associate Agreement'],
+      violations: ['<i class="bi bi-x-circle-fill text-red-400"></i> HIPAA §164.502 — Sharing medical records requires explicit written authorization','<i class="bi bi-x-circle-fill text-red-400"></i> HIPAA §164.514 — Selling PHI is prohibited without individual consent','<i class="bi bi-x-circle-fill text-red-400"></i> HIPAA §164.504 — Third-party sharing requires Business Associate Agreement'],
       diff: [
         {type:'remove', text:'We will sell your personal data including medical records, Social Security number, and banking details to our advertising partners without your explicit consent.'},
         {type:'add', text:'We protect your health information in accordance with HIPAA Privacy Rule (45 CFR §164). Your information is never sold. Any disclosure requires your written authorization.'},
@@ -474,7 +477,7 @@ async function runComplianceWeave() {
     },
     gdpr: {
       score: 0.06,
-      violations: ['❌ GDPR Art. 6 — Processing without lawful basis','❌ GDPR Art. 7 — Consent must be freely given, specific, and informed','❌ GDPR Art. 44 — Cross-border transfers require adequacy decision or SCCs'],
+      violations: ['<i class="bi bi-x-circle-fill text-red-400"></i> GDPR Art. 6 — Processing without lawful basis','<i class="bi bi-x-circle-fill text-red-400"></i> GDPR Art. 7 — Consent must be freely given, specific, and informed','<i class="bi bi-x-circle-fill text-red-400"></i> GDPR Art. 44 — Cross-border transfers require adequacy decision or SCCs'],
       diff: [
         {type:'remove', text:'We will sell your personal data… without your explicit consent.'},
         {type:'add', text:'We process personal data only with your explicit, freely-given consent (GDPR Art. 6(1)(a)) or another lawful basis. You may withdraw consent at any time.'},
@@ -484,7 +487,7 @@ async function runComplianceWeave() {
     },
     finra: {
       score: 0.20,
-      violations: ['⚠️ FINRA Rule 2210 — Claims must be fair, balanced, and not misleading','⚠️ Missing required risk disclosures','⚠️ Cross-border data sharing of financial data without SEC Rule 17a-4 safeguards'],
+      violations: ['<i class="bi bi-exclamation-triangle-fill text-amber-400"></i> FINRA Rule 2210 — Claims must be fair, balanced, and not misleading','<i class="bi bi-exclamation-triangle-fill text-amber-400"></i> Missing required risk disclosures','<i class="bi bi-exclamation-triangle-fill text-amber-400"></i> Cross-border data sharing of financial data without SEC Rule 17a-4 safeguards'],
       diff: [
         {type:'remove', text:'We will sell your personal data including… banking details to our advertising partners.'},
         {type:'add', text:'Your financial data is held in strict confidence per FINRA Rule 2210 and SEC Reg S-P. We do not share data with advertisers.'},
@@ -493,7 +496,7 @@ async function runComplianceWeave() {
     },
     ccpa: {
       score: 0.10,
-      violations: ['❌ CCPA §1798.100 — Right to know what data is collected','❌ CCPA §1798.120 — Right to opt out of sale of personal information','❌ CCPA §1798.140 — Selling SSNs is categorically prohibited (sensitive personal information)'],
+      violations: ['<i class="bi bi-x-circle-fill text-red-400"></i> CCPA §1798.100 — Right to know what data is collected','<i class="bi bi-x-circle-fill text-red-400"></i> CCPA §1798.120 — Right to opt out of sale of personal information','<i class="bi bi-x-circle-fill text-red-400"></i> CCPA §1798.140 — Selling SSNs is categorically prohibited (sensitive personal information)'],
       diff: [
         {type:'remove', text:'We will sell your personal data including… Social Security number…'},
         {type:'add', text:'Under CCPA, you have the right to know, delete, and opt out of the sale of your personal information. We do not sell sensitive personal information (Cal. Civ. Code §1798.121).'},
@@ -505,7 +508,7 @@ async function runComplianceWeave() {
 
   setScore('cw-score-wrap','cw-score-bar','cw-score-value', r.score);
   document.getElementById('cw-violations').className = 'result-box has-result';
-  document.getElementById('cw-violations').innerHTML = '<strong>Violations found:</strong><br/>' + r.violations.map(v => `<div style="margin:6px 0;font-size:0.85rem;color:#9896b8;">${v}</div>`).join('');
+  document.getElementById('cw-violations').innerHTML = '<strong class="text-[#f1f0ff]">Violations found:</strong><br/>' + r.violations.map(v => `<div class="mt-1.5 text-[0.85rem] text-[#9896b8]">${v}</div>`).join('');
 
   const diffEl = document.getElementById('cw-diff');
   diffEl.className = 'result-box has-result';
@@ -583,30 +586,30 @@ async function runVoiceLume() {
     finra: {
       tag: 'FINRA Rule 2210',
       disclosure: 'REQUIRED FINRA DISCLOSURE: "Investment involves risk. The value of investments and the income from them may go down as well as up and you may not get back the amount originally invested. Past performance is not a reliable indicator of future results."',
-      compliance: ['✅ Required risk disclosure inserted','✅ Balanced language verified','✅ No misleading performance claims detected','⚠️ Recommend adding: broker-dealer registration number']
+      compliance: ['<i class="bi bi-check-circle-fill text-emerald-400"></i> Required risk disclosure inserted','<i class="bi bi-check-circle-fill text-emerald-400"></i> Balanced language verified','<i class="bi bi-check-circle-fill text-emerald-400"></i> No misleading performance claims detected','<i class="bi bi-exclamation-triangle-fill text-amber-400"></i> Recommend adding: broker-dealer registration number']
     },
     fda: {
       tag: 'FDA 21 CFR §202.1',
       disclosure: 'REQUIRED FDA DISCLOSURE: "This product has not been evaluated by the Food and Drug Administration. This product is not intended to diagnose, treat, cure, or prevent any disease. Important Safety Information: [insert full prescribing information]. See full Prescribing Information and Medication Guide."',
-      compliance: ['✅ Fair balance disclosure inserted','✅ Major side effects section placeholder added','✅ Brief summary reference included','❌ Must add product-specific side effect list before broadcast']
+      compliance: ['<i class="bi bi-check-circle-fill text-emerald-400"></i> Fair balance disclosure inserted','<i class="bi bi-check-circle-fill text-emerald-400"></i> Major side effects section placeholder added','<i class="bi bi-check-circle-fill text-emerald-400"></i> Brief summary reference included','<i class="bi bi-x-circle-fill text-red-400"></i> Must add product-specific side effect list before broadcast']
     },
     fcc: {
       tag: 'FCC 47 CFR §64.1200',
       disclosure: 'REQUIRED FCC DISCLOSURE: "This call may be recorded for quality assurance and training purposes. If you wish to opt out of call recording, please press 9. Message and data rates may apply."',
-      compliance: ['✅ Recording consent disclosure inserted','✅ Opt-out mechanism referenced','✅ Data rate disclosure added','✅ Caller ID compliance verified']
+      compliance: ['<i class="bi bi-check-circle-fill text-emerald-400"></i> Recording consent disclosure inserted','<i class="bi bi-check-circle-fill text-emerald-400"></i> Opt-out mechanism referenced','<i class="bi bi-check-circle-fill text-emerald-400"></i> Data rate disclosure added','<i class="bi bi-check-circle-fill text-emerald-400"></i> Caller ID compliance verified']
     },
     ada: {
       tag: 'ADA / Section 508',
       disclosure: '[ACCESSIBILITY NOTE: Audio transcript available. Call 1-800-555-LUME for TTY/TDD access. This content meets WCAG 2.1 AA standards.]',
-      compliance: ['✅ TTY/TDD access information provided','✅ Transcript availability noted','✅ Plain language readability score: 72 (Flesch)','✅ No jargon flags']
+      compliance: ['<i class="bi bi-check-circle-fill text-emerald-400"></i> TTY/TDD access information provided','<i class="bi bi-check-circle-fill text-emerald-400"></i> Transcript availability noted','<i class="bi bi-check-circle-fill text-emerald-400"></i> Plain language readability score: 72 (Flesch)','<i class="bi bi-check-circle-fill text-emerald-400"></i> No jargon flags']
     }
   };
   const d = disclosures[mode];
   document.getElementById('vl-compliance').className = 'result-box has-result';
-  document.getElementById('vl-compliance').innerHTML = `<strong>Framework: ${d.tag}</strong><br/><br/>` + d.compliance.map(c => `<div style="font-size:0.85rem;margin:4px 0;">${c}</div>`).join('');
+  document.getElementById('vl-compliance').innerHTML = `<strong class="text-[#f1f0ff]">Framework: ${escHtml(d.tag)}</strong><br/><br/>` + d.compliance.map(c => `<div class="text-[0.85rem] text-[#9896b8] mt-1">${c}</div>`).join('');
 
   document.getElementById('vl-script').className = 'result-box has-result';
-  document.getElementById('vl-script').innerHTML = `<span style="color:#9896b8;font-size:0.8rem;">[ORIGINAL SCRIPT]</span><br/>${escHtml(text)}<br/><br/><span style="color:#f59e0b;font-size:0.8rem;">[AUTO-INSERTED: ${escHtml(d.tag)}]</span><br/><em style="color:#9896b8;font-size:0.82rem;">${escHtml(d.disclosure)}</em>`;
+  document.getElementById('vl-script').innerHTML = `<span class="text-[0.8rem] text-[#9896b8]">[ORIGINAL SCRIPT]</span><br/>${escHtml(text)}<br/><br/><span class="text-[0.8rem] text-amber-400">[AUTO-INSERTED: ${escHtml(d.tag)}]</span><br/><em class="text-[0.82rem] text-[#9896b8]">${escHtml(d.disclosure)}</em>`;
 
   setLoading(btn, false);
 }
