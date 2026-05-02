@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Static Site</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">My Site</div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section id="home" class="hero">
+            <div class="hero-content">
+                <h1>Welcome to My Site</h1>
+                <p>A fast, lightweight static website served by NGINX.</p>
+                <a href="#about" class="btn">Learn More</a>
+            </div>
+        </section>
+
+        <section id="about" class="about">
+            <div class="container">
+                <h2>About</h2>
+                <p>This site is served using NGINX inside a Docker container. It is fast, secure, and easy to deploy anywhere that runs Docker.</p>
+                <div class="cards">
+                    <div class="card">
+                        <h3>Lightweight</h3>
+                        <p>Built on the official NGINX Alpine image for a minimal footprint.</p>
+                    </div>
+                    <div class="card">
+                        <h3>Secure</h3>
+                        <p>Configured with security headers to protect against common web vulnerabilities.</p>
+                    </div>
+                    <div class="card">
+                        <h3>Fast</h3>
+                        <p>Static assets are served with caching headers for optimal performance.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="contact">
+            <div class="container">
+                <h2>Contact</h2>
+                <p>Get in touch at <a href="mailto:hello@example.com">hello@example.com</a></p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 My Site. All rights reserved.</p>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
