@@ -18,6 +18,33 @@ The `Dockerfile` and `nginx.conf` for each version are located within their resp
 *   **Performant**: Configured for efficient delivery of static assets with caching headers.
 *   **Simple**: Easy to understand and set up, even for those new to Docker or NGINX.
 
+## HTML Files
+
+This repository contains the following HTML file:
+
+| File | Description |
+|------|-------------|
+| `public/index.html` | The main (and only) page of the static site. It contains the full single-page layout with a hero section, an about section with feature cards, and a contact section. |
+
+All HTML content lives inside the `public/` directory, which is the webroot that NGINX serves.
+
+## Theme
+
+The site uses a **custom hand-written CSS theme** located at `public/css/styles.css`. There is no external CSS framework (e.g. Bootstrap or Tailwind). Key design decisions:
+
+| Element | Value |
+|---------|-------|
+| **Primary color** | Indigo `#4f46e5` |
+| **Accent / gradient end** | Violet `#7c3aed` |
+| **Hero background** | Linear gradient `135deg`, indigo → violet |
+| **Body background** | White `#ffffff` |
+| **Section background** | Light gray `#f9fafb` |
+| **Footer background** | Dark indigo `#1e1b4b` |
+| **Font stack** | System UI (`-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, Roboto, Helvetica, Arial) |
+| **Layout** | CSS Grid for the feature cards; Flexbox for navigation and hero |
+
+The color palette mirrors the Tailwind CSS `indigo-600` / `violet-600` hues, but the CSS is entirely custom with no dependency on Tailwind.
+
 ## Setup Instructions
 
 These instructions will guide you through setting up a static site on a host or server.
@@ -99,3 +126,151 @@ docker run -d -p 8080:80 -v $(pwd)/public:/usr/share/nginx/html nginx:alpine
 ```
 
 This command mounts the `public` directory on your host directly into the container, so changes are reflected immediately without needing to rebuild the image.
+
+---
+
+## Running Locally on macOS
+
+### Prerequisites
+
+Install [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/) (supports both Intel and Apple Silicon). Once installed, start Docker Desktop and wait until the whale icon in the menu bar shows **"Docker Desktop is running"**.
+
+### Quick Start (recommended)
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/OnionSmash/nginx-static-host.git
+cd nginx-static-host
+
+# 2. Build the image using the Version 1.1 Dockerfile
+docker build \
+  -f docker/nginx/1.1/dockerfile \
+  -t nginx-static-host:local .
+
+# 3. Run the container
+docker run -d --name nginx-static-host \
+  -p 8080:80 \
+  nginx-static-host:local
+```
+
+Open your browser at **http://localhost:8080**.
+
+### Live-reload during development
+
+For a faster feedback loop while editing files in `public/`, use a bind mount instead of rebuilding the image every time:
+
+```bash
+docker run -d --name nginx-static-dev \
+  -p 8080:80 \
+  -v "$(pwd)/public:/usr/share/nginx/html:ro" \
+  nginx:alpine
+```
+
+Edit any file in `public/` and simply refresh the browser — no rebuild needed.
+
+### Stopping and cleaning up
+
+```bash
+docker stop nginx-static-host
+docker rm   nginx-static-host
+```
+
+---
+
+## Deploying on a Linode Ubuntu Docker Server
+
+These steps assume you have a Linode VPS running Ubuntu (20.04 or 22.04) and a user with `sudo` privileges.
+
+### 1. Install Docker on the Linode
+
+SSH into the server and run:
+
+```bash
+# Update package index and install prerequisites
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl gnupg
+
+# Add Docker's official GPG key and repository
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+  | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+  https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
+  | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+
+# Allow your user to run Docker without sudo (re-login after this)
+sudo usermod -aG docker $USER
+```
+
+Log out and back in so the group change takes effect, then verify:
+
+```bash
+docker --version
+```
+
+### 2. Clone the Repository
+
+```bash
+git clone https://github.com/OnionSmash/nginx-static-host.git
+cd nginx-static-host
+```
+
+### 3. Build the Production Image
+
+```bash
+docker build \
+  -f docker/nginx/1.1/dockerfile \
+  -t nginx-static-host:latest .
+```
+
+### 4. Run the Container
+
+```bash
+docker run -d \
+  --name nginx-static-host \
+  --restart unless-stopped \
+  -p 80:80 \
+  nginx-static-host:latest
+```
+
+*   `--restart unless-stopped` — the container restarts automatically if the server reboots or Docker restarts.
+*   `-p 80:80` — maps the host's port 80 directly so the site is reachable without a port number.
+
+Verify the site is up:
+
+```bash
+curl -I http://localhost
+```
+
+### 5. (Optional) Enable HTTPS with Let's Encrypt
+
+For a production deployment, run [Certbot](https://certbot.eff.org/) on the host or add an [NGINX proxy with SSL termination](https://nginxproxymanager.com/) in front of this container. Point your domain's DNS A record to your Linode's IP address first.
+
+### 6. Updating the Site
+
+When you push new content, update the server with:
+
+```bash
+cd nginx-static-host
+git pull
+
+docker build \
+  -f docker/nginx/1.1/dockerfile \
+  -t nginx-static-host:latest .
+
+docker stop  nginx-static-host
+docker rm    nginx-static-host
+
+docker run -d \
+  --name nginx-static-host \
+  --restart unless-stopped \
+  -p 80:80 \
+  nginx-static-host:latest
+```
