@@ -1,0 +1,39 @@
+name: CI
+
+on:
+    push:
+        branches: ["main"]
+    pull_request:
+        branches: ["main"]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        permissions:
+            contents: read
+
+        strategy:
+            matrix:
+                version: ["1.0", "1.1"]
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Build Docker image (v${{ matrix.version }})
+              run: |
+                  cp docker/nginx/${{ matrix.version }}/nginx.conf nginx.conf
+                  docker build \
+                    -f docker/nginx/${{ matrix.version }}/dockerfile \
+                    -t nginx-static-host:${{ matrix.version }} \
+                    .
+                  rm nginx.conf
+
+            - name: Smoke-test container (v${{ matrix.version }})
+              run: |
+                  docker run -d --name test-${{ matrix.version }} \
+                    -p 8080:80 \
+                    nginx-static-host:${{ matrix.version }}
+                  sleep 2
+                  curl -sf http://localhost:8080/ | grep -q "My Static Site"
+                  docker stop test-${{ matrix.version }}

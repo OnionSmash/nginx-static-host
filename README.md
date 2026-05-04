@@ -45,6 +45,23 @@ The site uses a **custom hand-written CSS theme** located at `public/css/styles.
 
 The color palette mirrors the Tailwind CSS `indigo-600` / `violet-600` hues, but the CSS is entirely custom with no dependency on Tailwind.
 
+## Quick Start (Docker Compose)
+
+The fastest way to run the site locally is with Docker Compose:
+
+```bash
+docker compose up
+```
+
+This pulls `nginx:alpine`, mounts your `public/` directory and the v1.1 `nginx.conf`, and serves the site at `http://localhost:8080`. Any edits to files in `public/` are reflected on the next page refresh — no rebuild needed.
+
+Stop the server with `Ctrl+C`, or run it in the background with:
+
+```bash
+docker compose up -d
+docker compose down  # when finished
+```
+
 ## Setup Instructions
 
 These instructions will guide you through setting up a static site on a host or server.
@@ -274,3 +291,12 @@ docker run -d \
   -p 80:80 \
   nginx-static-host:latest
 ```
+
+## CI / Automated Builds
+
+A GitHub Actions workflow (`.github/workflows/ci.yml`) runs automatically on every push and pull request targeting `main`. It:
+
+1.  Builds the Docker image for **both v1.0 and v1.1** in parallel.
+2.  Starts each container and runs a smoke test (`curl`) to verify the site is reachable and serving the expected HTML.
+
+No configuration is required — the workflow uses the same `docker build` command documented above.
